@@ -1,4 +1,6 @@
 package net.masterstudios.konze.driver.postgres
 
-public class Initializer : DatabaseInitializer {
+import net.masterstudios.konze.database.DatabaseInitializer
+
+public class Initializer : DatabaseInitializer() {
 }

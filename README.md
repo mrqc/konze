@@ -1,7 +1,7 @@
 # Konze
 
 ## tl;dr
-Text-to-SQL database connection tool for agents, with 
+Text-to-SQL database connection management framework for agents, with 
 * permission management
 * connection timeout management
 * connection profiles
@@ -14,7 +14,7 @@ First release of Konze supports PostgreSQL databases, but support for MySQL and 
 
 ## What is Konze?
 
-A Text-to-SQL database connection tool for agents. When you want to provide agents access to a database, Konze ensures that
+A Text-to-SQL database connection management framework for agents. When you want to provide agents access to a database, Konze ensures that
 * a connection for an agent gets only those permissions that are necessary for the agent to do its job
 * a connection follows specific timeout to prevent agents from keeping connections open indefinitely and overloading the database
 * you can define profiles for connections which can be reused across agents, so you don't have to define the same connection parameters for each agent

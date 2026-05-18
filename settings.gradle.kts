@@ -7,3 +7,4 @@ include(":driver-postgres")
 
 include("core")
 include("driver-postgres")
+include("konze-spring-boot-starter")

@@ -2,15 +2,14 @@
 
 ## tl;dr
 Text-to-SQL database connection management framework for agents, with 
+* recovery of data
 * permission management
 * connection timeout management
-* connection profiles
+* connection profiles management
 * data change auditing
-* query logging.
+* prompt and query logging.
 
 First release of Konze supports PostgreSQL databases, but support for MySQL and other databases is planned for the future.
-
----
 
 ## What is Konze?
 

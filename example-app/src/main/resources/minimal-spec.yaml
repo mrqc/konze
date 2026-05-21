@@ -1,0 +1,17 @@
+konze:
+  profiles:
+    example-profile:
+      permissions:
+        - select
+        
+      pool:
+        jdbcUrl: jdbc:h2:mem:konze_example;DB_CLOSE_DELAY=-1
+        username: sa
+        password: ""
+        
+  databaseAdministration:
+    access:
+      driver: net.masterstudios.konze.driver.h2.H2DatabaseDriver
+      jdbcUrl: jdbc:h2:mem:konze_example;DB_CLOSE_DELAY=-1
+      username: sa
+      password: ""

@@ -49,7 +49,7 @@ class EngineTest {
                     username: sa
                     password: ""
                     initializationFailTimeout: -1
-              database-administration:
+              databaseAdministration:
                 access:
                   jdbcUrl: jdbc:h2:mem:admin_test;DB_CLOSE_DELAY=-1
                   username: sa
@@ -81,7 +81,7 @@ class EngineTest {
                     username: sa
                     password: ""
                     initializationFailTimeout: -1
-              database-administration:
+              databaseAdministration:
                 access:
                   driver: net.masterstudios.konze.driver.h2.H2DatabaseDriver
                   jdbcUrl: jdbc:h2:mem:dynamic_test;DB_CLOSE_DELAY=-1

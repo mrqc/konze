@@ -19,21 +19,21 @@ konze:
         
       configuration:
         query:
-          row-limit: 1000
-          execution-timeout: 60s
-          execution-logging: true
-          execution-log: ./logs/execution.log
+          rowLimit: 1000
+          executionTimeout: 60s
+          executionLogging: true
+          executionLog: ./logs/execution.log
         audit:
           log: ./logs/audit.log
         monitoring:
-          slow-query-threshold: 500ms
-          slow-query-logging: true
-          slow-query-log: ./logs/slow-queries.log
-      schema-discovery-endpoint:
+          slowQueryThreshold: 500ms
+          slowQueryLogging: true
+          slowQueryLog: ./logs/slow-queries.log
+      schemaDiscoveryEndpoint:
         enabled: true
         endpoint: /schema-discovery
         authentication: true
-        rate-limiting: 100 requests per minute
+        rateLimiting: 100 requests per minute
       pool:
         dataSourceClassName: com.zaxxer.hikari.HikariDataSource
         jdbcUrl: jdbc:mysql://localhost:3306/mydb
@@ -56,13 +56,13 @@ konze:
         leakDetectionThreshold: 2000
         schema: public
         
-  database-administration:
+  databaseAdministration:
     access:
       driver: net.masterstudios.konze.driver.h2.H2DatabaseDriver
       jdbcUrl: jdbc:mysql://localhost:3306/mydb
       username: admin
       password: adminpassword
     schema:
-      - update-trigger: true
-      - delete-trigger: true
-      - insert-trigger: true
+      updateTrigger: true
+      deleteTrigger: true
+      insertTrigger: true

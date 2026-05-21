@@ -87,7 +87,28 @@ class YamlFileReaderTest {
         assertEquals(10, profile.pool.maximumPoolSize)
 
         assertNotNull(result.konze.databaseAdministration)
-        assertEquals(3, result.konze.databaseAdministration!!.schema.size)
+        assertTrue(result.konze.databaseAdministration!!.schema.updateTrigger)
+        assertTrue(result.konze.databaseAdministration!!.schema.deleteTrigger)
+        assertTrue(result.konze.databaseAdministration!!.schema.insertTrigger)
+    }
+
+    @Test
+    fun `should read minimal-spec yaml file`() {
+        val reader = YamlFileReader("../example-app/src/main/resources/minimal-spec.yaml")
+        val result = reader.readAs<ConfigurationFile>()
+        
+        val profiles = result.konze.profiles
+        assertEquals(1, profiles.size)
+        assertTrue(profiles.containsKey("example-profile"))
+        
+        val profile = profiles["example-profile"]!!
+        assertEquals(1, profile.permissions.size)
+        assertEquals("select", profile.permissions[0])
+        
+        assertEquals("jdbc:h2:mem:konze_example;DB_CLOSE_DELAY=-1", profile.pool.jdbcUrl)
+        
+        assertNotNull(result.konze.databaseAdministration)
+        assertEquals("net.masterstudios.konze.driver.h2.H2DatabaseDriver", result.konze.databaseAdministration!!.access.driver)
     }
 
     private fun assertNotNull(actual: Any?) {

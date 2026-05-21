@@ -4,10 +4,10 @@ import net.masterstudios.konze.Engine
 import java.io.File
 import java.nio.file.Paths
 
-public class ExampleApplication {
-    public companion object {
+class ExampleApplication {
+    companion object {
         @JvmStatic
-        public fun main(args: Array<String>) {
+        fun main(args: Array<String>) {
             // Locate the example-spec.yaml. 
             val configPath = "src/main/resources/example-spec.yaml"
             

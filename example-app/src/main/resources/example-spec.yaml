@@ -19,21 +19,21 @@ konze:
         
       configuration:
         query:
-          row-limit: 1000
-          execution-timeout: 60s
-          execution-logging: true
-          execution-log: ./logs/execution.log
+          rowLimit: 1000
+          executionTimeout: 60s
+          executionLogging: true
+          executionLog: ./logs/execution.log
         audit:
           log: ./logs/audit.log
         monitoring:
-          slow-query-threshold: 500ms
-          slow-query-logging: true
-          slow-query-log: ./logs/slow-queries.log
-      schema-discovery-endpoint:
+          slowQueryThreshold: 500ms
+          slowQueryLogging: true
+          slowQueryLog: ./logs/slow-queries.log
+      schemaDiscoveryEndpoint:
         enabled: true
         endpoint: /schema-discovery
         authentication: true
-        rate-limiting: 100 requests per minute
+        rateLimiting: 100 requests per minute
       pool:
         jdbcUrl: jdbc:h2:mem:konze_example;DB_CLOSE_DELAY=-1
         username: sa
@@ -52,13 +52,13 @@ konze:
         validationTimeout: 5000
         leakDetectionThreshold: 2000
         
-  database-administration:
+  databaseAdministration:
     access:
       driver: net.masterstudios.konze.driver.h2.H2DatabaseDriver
       jdbcUrl: jdbc:h2:mem:konze_example;DB_CLOSE_DELAY=-1
       username: sa
       password: ""
     schema:
-      - update-trigger: true
-      - delete-trigger: true
-      - insert-trigger: true
+      updateTrigger: true
+      deleteTrigger: true
+      insertTrigger: true

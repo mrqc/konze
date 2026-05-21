@@ -1,21 +1,17 @@
 package net.masterstudios.konze.yaml
 
-import com.fasterxml.jackson.annotation.JsonProperty
-
 public data class ConfigurationFile(
     public val konze: Konze = Konze()
 )
 
 public data class Konze(
     public val profiles: Map<String, ProfileConfiguration> = emptyMap(),
-    @field:JsonProperty("database-administration")
     public val databaseAdministration: DatabaseAdministration? = null
 )
 
 public data class ProfileConfiguration(
     public val permissions: List<String> = emptyList(),
     public val configuration: ProfileSpecificConfiguration = ProfileSpecificConfiguration(),
-    @field:JsonProperty("schema-discovery-endpoint")
     public val schemaDiscoveryEndpoint: SchemaDiscoveryEndpointConfiguration = SchemaDiscoveryEndpointConfiguration(),
     public val pool: PoolConfiguration = PoolConfiguration()
 )
@@ -27,13 +23,9 @@ public data class ProfileSpecificConfiguration(
 )
 
 public data class QueryConfiguration(
-    @field:JsonProperty("row-limit")
     public val rowLimit: Int = 1000,
-    @field:JsonProperty("execution-timeout")
     public val executionTimeout: String = "60s",
-    @field:JsonProperty("execution-logging")
     public val executionLogging: Boolean = true,
-    @field:JsonProperty("execution-log")
     public val executionLog: String = "./logs/execution.log"
 )
 
@@ -42,11 +34,8 @@ public data class AuditConfiguration(
 )
 
 public data class MonitoringConfiguration(
-    @field:JsonProperty("slow-query-threshold")
     public val slowQueryThreshold: String = "500ms",
-    @field:JsonProperty("slow-query-logging")
     public val slowQueryLogging: Boolean = true,
-    @field:JsonProperty("slow-query-log")
     public val slowQueryLog: String = "./logs/slow-queries.log"
 )
 
@@ -54,7 +43,6 @@ public data class SchemaDiscoveryEndpointConfiguration(
     public val enabled: Boolean = true,
     public val endpoint: String = "/schema-discovery",
     public val authentication: Boolean = true,
-    @field:JsonProperty("rate-limiting")
     public val rateLimiting: String = "100 requests per minute"
 )
 
@@ -83,7 +71,13 @@ public data class PoolConfiguration(
 
 public data class DatabaseAdministration(
     public val access: DatabaseAccess = DatabaseAccess(),
-    public val schema: List<Map<String, Boolean>> = emptyList()
+    public val schema: SchemaConfiguration = SchemaConfiguration()
+)
+
+public data class SchemaConfiguration(
+    public val updateTrigger: Boolean = true,
+    public val deleteTrigger: Boolean = true,
+    public val insertTrigger: Boolean = true
 )
 
 public data class DatabaseAccess(

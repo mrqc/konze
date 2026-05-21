@@ -1,0 +1,64 @@
+konze:
+  profiles:
+    example-profile:
+      permissions:
+        - select
+        - insert
+        - update
+        - delete
+        - truncate
+        - references
+        - trigger
+        - maintain
+        - usage
+        - create
+        - connect
+        - temporary
+        - execute
+        - all privileges
+        
+      configuration:
+        query:
+          row-limit: 1000
+          execution-timeout: 60s
+          execution-logging: true
+          execution-log: ./logs/execution.log
+        audit:
+          log: ./logs/audit.log
+        monitoring:
+          slow-query-threshold: 500ms
+          slow-query-logging: true
+          slow-query-log: ./logs/slow-queries.log
+      schema-discovery-endpoint:
+        enabled: true
+        endpoint: /schema-discovery
+        authentication: true
+        rate-limiting: 100 requests per minute
+      pool:
+        jdbcUrl: jdbc:h2:mem:konze_example;DB_CLOSE_DELAY=-1
+        username: sa
+        password: ""
+        autoCommit: true
+        connectionTimeout: 30000
+        idleTimeout: 600000
+        keepaliveTime: 0
+        maxLifetime: 1800000
+        connectionTestQuery: SELECT 1
+        minimumIdle: 5
+        maximumPoolSize: 10
+        poolName: ExamplePool
+        initializationFailTimeout: -1
+        readOnly: false
+        validationTimeout: 5000
+        leakDetectionThreshold: 2000
+        
+  database-administration:
+    access:
+      driver: net.masterstudios.konze.driver.h2.H2DatabaseDriver
+      jdbcUrl: jdbc:h2:mem:konze_example;DB_CLOSE_DELAY=-1
+      username: sa
+      password: ""
+    schema:
+      - update-trigger: true
+      - delete-trigger: true
+      - insert-trigger: true

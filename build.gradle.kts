@@ -1,27 +1,15 @@
 plugins {
-    kotlin("jvm") version "2.3.10"
+    kotlin("jvm") version "2.3.10" apply false
 }
 
 group = "net.masterstudios"
 version = "1.0-SNAPSHOT"
 
-repositories {
-    mavenCentral()
-}
-
-dependencies {
-    testImplementation(kotlin("test"))
-}
-
-kotlin {
-    jvmToolchain(22)
-}
-
-tasks.test {
-    useJUnitPlatform()
-}
-
 subprojects {
+    repositories {
+        mavenCentral()
+    }
+
     plugins.withType<JavaPlugin> {
         apply(plugin = "maven-publish")
 

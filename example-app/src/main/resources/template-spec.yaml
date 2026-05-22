@@ -42,13 +42,13 @@ konze:
         idleTimeout: 600000
         keepaliveTime: 0
         maxLifetime: 1800000
-        connectionTestQuery: SELECT 1
+        connectionTestQuery: select 1
         minimumIdle: 10
         maximumPoolSize: 20
         poolName: MyHikariPool
         initializationFailTimeout: 1
         readOnly: false
-        connectionInitSql: SELECT 1
+        connectionInitSql: select 1
         transactionIsolation: TRANSACTION_READ_COMMITTED
         validationTimeout: 5000
         leakDetectionThreshold: 2000

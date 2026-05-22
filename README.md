@@ -21,61 +21,68 @@ A Text-to-SQL database connection management framework for agents. When you want
 * queries are logged to agent log files, so you can see what queries agents are running against the database (Konze logs queries to a file)
 
 Example config yaml file:
-```
-profiles:
-  - name: admin-agent
-    permissions:
-      - select
-      - insert
-      - update
-      - delete
-      - truncate
-      - references
-      - trigger
-      - maintain
-      - usage
-      - create
-      - connect
-      - temporary
-      - execute
-      #- all privileges
-      query:
-        row-limit: 1000
-        execution-timeout: 60s
-        execution-logging: true
-        execution-log: ./logs/execution.log
-      audit:
-        log: ./logs/audit.log
-        schema-adaption:
-          - update-trigger: true
-          - delete-trigger: true
-          - insert-trigger: true
+```yaml
+konze:
+  profiles:
+    admin-agent:
+      permissions:
+        - select
+        - insert
+        - update
+        - delete
+        - truncate
+        - references
+        - trigger
+        - maintain
+        - usage
+        - create
+        - connect
+        - temporary
+        - execute
+        #- all privileges
+      configuration:
+        query:
+          rowLimit: 1000
+          executionTimeout: 60s
+          executionLogging: true
+          executionLog: ./logs/execution.log
+        audit:
+          log: ./logs/audit.log
         monitoring:
-          slow-query-threshold: 500ms
-          slow-query-logging: true
-          slow-query-log: ./logs/slow-queries.log
+          slowQueryThreshold: 500ms
+          slowQueryLogging: true
+          slowQueryLog: ./logs/slow-queries.log
           
-configuration:
-  pool:
-    dataSourceClassName: com.zaxxer.hikari.HikariDataSource
-    jdbcUrl: jdbc:mysql://localhost:3306/mydb
-    username: user
-    password: password
-    autoCommit: true
-    connectionTimeout: 30000
-    idleTimeout: 600000
-    keepaliveTime: 0
-    maxLifetime: 1800000
-    connectionTestQuery: SELECT 1
-    minimumIdle: 10
-    maximumPoolSize: 20
-    poolName: MyHikariPool
-    initializationFailTimeout: 1
-    readOnly: false
-    connectionInitSql: SELECT 1
-    transactionIsolation: TRANSACTION_READ_COMMITTED
-    validationTimeout: 5000
-    leakDetectionThreshold: 2000
-    schema: public
+      pool:
+        dataSourceClassName: com.zaxxer.hikari.HikariDataSource
+        jdbcUrl: jdbc:postgresql://localhost:5432/mydb
+        username: user
+        password: password
+        autoCommit: true
+        connectionTimeout: 30000
+        idleTimeout: 600000
+        keepaliveTime: 0
+        maxLifetime: 1800000
+        connectionTestQuery: select 1
+        minimumIdle: 10
+        maximumPoolSize: 20
+        poolName: MyHikariPool
+        initializationFailTimeout: 1
+        readOnly: false
+        connectionInitSql: select 1
+        transactionIsolation: TRANSACTION_READ_COMMITTED
+        validationTimeout: 5000
+        leakDetectionThreshold: 2000
+        schema: public
 
+  databaseAdministration:
+    access:
+      driver: net.masterstudios.konze.driver.postgres.PostgresDatabaseDriver
+      jdbcUrl: jdbc:postgresql://localhost:5432/mydb
+      username: admin_user
+      password: admin_password
+    schema:
+      updateTrigger: true
+      deleteTrigger: true
+      insertTrigger: true
 ```

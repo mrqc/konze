@@ -18,12 +18,12 @@ public class ExampleApplication {
 
             println("Starting Konze Example Application...")
             
-            Engine(configPath).use { engine ->
+            Engine(listOf(configPath)).use { engine ->
                 println("Engine initialized. Connection pools created.")
                 
                 // 1. Setup table with full access
                 val fullAccessProfile = "full-access-profile"
-                val fullAccessDs = engine.poolManager.getPool(fullAccessProfile)
+                val fullAccessDs = engine.getDatabaseContext("sample-context")!!.poolManager.getPool(fullAccessProfile)
                 
                 if (fullAccessDs != null) {
                     fullAccessDs.connection.use { connection ->
@@ -49,7 +49,7 @@ public class ExampleApplication {
 
                 // 2. Try to insert with read-only profile
                 val readOnlyProfile = "read-only-profile"
-                val readOnlyDs = engine.poolManager.getPool(readOnlyProfile)
+                val readOnlyDs = engine.getDatabaseContext("sample-context")!!.poolManager.getPool(readOnlyProfile)
                 
                 if (readOnlyDs != null) {
                     println("Attempting to insert into 'agents' with read-only-profile (expecting failure)...")

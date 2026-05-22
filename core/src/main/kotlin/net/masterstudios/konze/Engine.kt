@@ -37,4 +37,8 @@ public class Engine(private val configFilePaths: List<String>) : AutoCloseable {
             databaseContext.value.databaseAdministrationManager.close()
         }
     }
+    
+    public fun getDatabaseContext(contextId: String): DatabaseContext? {
+        return databaseContexts[contextId]
+    }
 }

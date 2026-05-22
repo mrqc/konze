@@ -23,18 +23,18 @@ public data class DatabaseContext (
 }
 
 public class Engine(private val configFilePaths: List<String>) : AutoCloseable {
-    private val databaseContexts: Map<String, DatabaseContext> = emptyMap()
+    private val databaseContexts: MutableMap<String, DatabaseContext> = mutableMapOf()
     init {
         for (configFilePath in configFilePaths) {
-            val databaseContext: DatabaseContext = databaseContexts.getValue(configFilePath)
-            databaseContexts.plus(databaseContext.configuration.konze.databaseContextId to databaseContext)
+            val databaseContext = DatabaseContext(configFilePath)
+            databaseContexts[databaseContext.configuration.konze.databaseContextId!!] = databaseContext
         }
     }
 
     override fun close() {
-        for (databaseContext in databaseContexts) {
-            databaseContext.value.poolManager.close()
-            databaseContext.value.databaseAdministrationManager.close()
+        for (databaseContext in databaseContexts.values) {
+            databaseContext.poolManager.close()
+            databaseContext.databaseAdministrationManager.close()
         }
     }
     

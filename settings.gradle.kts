@@ -7,3 +7,5 @@ include(":core")
 include(":driver-postgres")
 include(":konze-spring-boot-starter")
 include(":example-app")
+
+include("example-spring-boot-app")

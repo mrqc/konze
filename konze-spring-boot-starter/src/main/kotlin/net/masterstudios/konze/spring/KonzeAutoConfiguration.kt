@@ -11,6 +11,6 @@ public open class KonzeAutoConfiguration {
     @ConditionalOnMissingBean
     public open fun konzeEngine(): Engine {
         // This is just a placeholder, in a real scenario we'd need a config path
-        return Engine("example-app/src/main/resources/example-spec.yaml")
+        return Engine(listOf("example-app/src/main/resources/example-spec.yaml"))
     }
 }

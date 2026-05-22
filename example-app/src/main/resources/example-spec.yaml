@@ -56,7 +56,6 @@ konze:
         - select
       pool:
         jdbcUrl: jdbc:postgresql://localhost:5432/konze_db
-        # Password will be generated automatically
         
   databaseAdministration:
     access:

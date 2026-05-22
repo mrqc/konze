@@ -9,6 +9,10 @@ public class TestDatabaseDriver(
     configuration: ConfigurationFile
 ) : DatabaseDriver(connection, configuration) {
 
+    override fun setupDatabase() {}
+
+    override fun createRole(roleName: String) {}
+
     override fun isUserExisting(username: String): Boolean = false
     override fun createUser(username: String, password: String) {}
     override fun revokeAllPermissionsOnUser(username: String, schema: String) {}

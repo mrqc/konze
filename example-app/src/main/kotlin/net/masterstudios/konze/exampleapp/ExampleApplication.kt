@@ -21,6 +21,11 @@ public class ExampleApplication {
             Engine(configPath).use { engine ->
                 println("Engine initialized. Connection pools created.")
                 
+                // 0. Administrative cleanup (optional, helps when switching profile names)
+                engine.databaseAdministrationManager.connection.createStatement().use { statement ->
+                    statement.execute("drop table if exists agents") 
+                }
+
                 // 1. Setup table with full access
                 val fullAccessProfile = "full-access-profile"
                 val fullAccessDs = engine.poolManager.getPool(fullAccessProfile)
@@ -28,18 +33,17 @@ public class ExampleApplication {
                 if (fullAccessDs != null) {
                     fullAccessDs.connection.use { connection ->
                         connection.createStatement().use { statement ->
-                            println("Cleanup and creating example table 'agents' with full-access-profile...")
-                            statement.execute("DROP TABLE IF EXISTS agents")
+                            println("Creating example table 'agents' with full-access-profile...")
                             statement.execute("""
-                                CREATE TABLE agents (
-                                    id SERIAL PRIMARY KEY,
-                                    name VARCHAR(255) NOT NULL,
-                                    role VARCHAR(255)
+                                create table agents (
+                                    id serial primary key,
+                                    name varchar(255) not null,
+                                    role varchar(255)
                                 )
                             """.trimIndent())
                             
                             println("Inserting sample data with full-access-profile...")
-                            statement.execute("INSERT INTO agents (name, role) VALUES ('Master-Agent', 'Admin')")
+                            statement.execute("insert into agents (name, role) values ('Master-Agent', 'Admin')")
                         }
                     }
                 }
@@ -53,7 +57,7 @@ public class ExampleApplication {
                     try {
                         readOnlyDs.connection.use { connection ->
                             connection.createStatement().use { statement ->
-                                statement.execute("INSERT INTO agents (name, role) VALUES ('Unauthorized', 'Hacker')")
+                                statement.execute("insert into agents (name, role) values ('Unauthorized', 'Hacker')")
                             }
                         }
                         println("ERROR: Insert unexpectedly succeeded with read-only-profile!")
@@ -70,9 +74,9 @@ public class ExampleApplication {
                     try {
                         readOnlyDs.connection.use { connection ->
                             connection.createStatement().use { statement ->
-                                val rs = statement.executeQuery("SELECT count(*) FROM agents")
-                                if (rs.next()) {
-                                    println("Successfully read count: ${rs.getInt(1)}")
+                                val resultSet = statement.executeQuery("select count(*) from agents")
+                                if (resultSet.next()) {
+                                    println("Successfully read count: ${resultSet.getInt(1)}")
                                 }
                             }
                         }

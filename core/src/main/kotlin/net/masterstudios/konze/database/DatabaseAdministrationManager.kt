@@ -28,6 +28,7 @@ public class DatabaseAdministrationManager(private val configuration: Configurat
             val clazz = Class.forName(driverClassName)
             val constructor = clazz.getConstructor(Connection::class.java, ConfigurationFile::class.java)
             driver = constructor.newInstance(connection, configuration) as DatabaseDriver
+            driver.setupDatabase()
         } catch (e: Exception) {
             throw RuntimeException("Failed to instantiate database driver: $driverClassName", e)
         }

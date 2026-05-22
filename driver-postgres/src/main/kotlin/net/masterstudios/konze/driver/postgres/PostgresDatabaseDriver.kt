@@ -9,6 +9,18 @@ public class PostgresDatabaseDriver(
     connection: Connection,
     configuration: ConfigurationFile
 ) : DatabaseDriver(connection, configuration) {
+    
+    override fun setupDatabase() {
+        if (!isUserExisting("konze-users")) {
+            createRole("konze-users")
+        }
+    }
+
+    override fun createRole(roleName: String) {
+        require(roleName.isNotBlank()) { "roleName must not be null or empty" }
+        val sql = "create role \"$roleName\" nologin;"
+        connection.createStatement().use { it.execute(sql) }
+    }
 
     override fun isUserExisting(username: String): Boolean {
         require(username.isNotBlank()) { "username must not be null or empty" }
@@ -24,7 +36,7 @@ public class PostgresDatabaseDriver(
         require(username.isNotBlank()) { "username must not be null or empty" }
         require(password.isNotBlank()) { "password must not be null or empty" }
         
-        val sql = "create user \"$username\" with password '$password';"
+        val sql = "create user \"$username\" with password '$password' in role \"konze-users\";"
         connection.createStatement().use { it.execute(sql) }
     }
 
@@ -47,10 +59,13 @@ public class PostgresDatabaseDriver(
     override fun grantPermissionsOnUser(username: String, schema: String, permissions: List<Permission>) {
         require(username.isNotBlank()) { "username must not be null or empty" }
         
-        if (permissions.isEmpty()) return
-
         connection.createStatement().use { statement ->
-            // 1. Grant USAGE on schema
+            // 0. Ensure user is part of the shared role
+            statement.execute("grant \"konze-users\" to \"$username\"")
+
+            if (permissions.isEmpty()) return
+
+            // 1. Grant usage on schema
             statement.execute("grant usage on schema \"$schema\" to \"$username\"")
 
             if (permissions.contains(Permission.ALL_PRIVILEGES)) {
@@ -58,7 +73,7 @@ public class PostgresDatabaseDriver(
                 statement.execute("grant all privileges on all sequences in schema \"$schema\" to \"$username\"")
                 statement.execute("alter default privileges in schema \"$schema\" grant all privileges on tables to \"$username\"")
             } else {
-                // 2. Map to valid TABLE privileges
+                // 2. Map to valid table privileges
                 val tablePrivileges = setOf(
                     Permission.SELECT, Permission.INSERT, Permission.UPDATE, 
                     Permission.DELETE, Permission.TRUNCATE, Permission.REFERENCES, Permission.TRIGGER
@@ -71,13 +86,16 @@ public class PostgresDatabaseDriver(
                     // Grant on current tables
                     statement.execute("grant $privsString on all tables in schema \"$schema\" to \"$username\"")
                     
-                    // Grant on sequences if it's an INSERT/UPDATE
+                    // Grant on sequences if it's an insert/update
                     if (permissions.contains(Permission.INSERT) || permissions.contains(Permission.UPDATE)) {
                         statement.execute("grant usage, select on all sequences in schema \"$schema\" to \"$username\"")
                     }
 
                     // Grant on future tables
                     statement.execute("alter default privileges in schema \"$schema\" grant $privsString on tables to \"$username\"")
+                    
+                    // Transfer ownership concept: Ensure 'konze-users' can manage objects
+                    statement.execute("alter default privileges for role \"$username\" in schema \"$schema\" grant all on tables to \"konze-users\"")
                 }
 
                 // 3. Handle schema-level privileges

@@ -35,7 +35,7 @@ konze:
         rateLimiting: 100 requests per minute
       pool:
         jdbcUrl: jdbc:postgresql://localhost:5432/konze_db
-        username: konze_user
+        username: full-access-user
         password: konze_password
         autoCommit: true
         connectionTimeout: 30000

@@ -8,6 +8,10 @@ public abstract class DatabaseDriver(
     protected val connection: Connection,
     protected val configuration: ConfigurationFile
 ) {
+    public abstract fun setupDatabase()
+    
+    public abstract fun createRole(roleName: String)
+    
     public abstract fun isUserExisting(username: String): Boolean
 
     public abstract fun createUser(username: String, password: String)

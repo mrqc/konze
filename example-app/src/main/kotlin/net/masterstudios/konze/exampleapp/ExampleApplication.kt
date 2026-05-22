@@ -2,12 +2,12 @@ package net.masterstudios.konze.exampleapp
 
 import net.masterstudios.konze.Engine
 import java.io.File
-import java.nio.file.Paths
+import java.sql.SQLException
 
-class ExampleApplication {
-    companion object {
+public class ExampleApplication {
+    public companion object {
         @JvmStatic
-        fun main(args: Array<String>) {
+        public fun main(args: Array<String>) {
             // Locate the example-spec.yaml. 
             val configPath = "src/main/resources/example-spec.yaml"
             
@@ -21,15 +21,14 @@ class ExampleApplication {
             Engine(configPath).use { engine ->
                 println("Engine initialized. Connection pools created.")
                 
-                val profileName = "example-profile"
-                val dataSource = engine.poolManager.getPool(profileName)
+                // 1. Setup table with full access
+                val fullAccessProfile = "full-access-profile"
+                val fullAccessDs = engine.poolManager.getPool(fullAccessProfile)
                 
-                if (dataSource != null) {
-                    println("Connected to pool for profile: $profileName")
-                    
-                    dataSource.connection.use { connection ->
+                if (fullAccessDs != null) {
+                    fullAccessDs.connection.use { connection ->
                         connection.createStatement().use { statement ->
-                            println("Creating example table 'agents'...")
+                            println("Cleanup and creating example table 'agents' with full-access-profile...")
                             statement.execute("DROP TABLE IF EXISTS agents")
                             statement.execute("""
                                 CREATE TABLE agents (
@@ -39,24 +38,51 @@ class ExampleApplication {
                                 )
                             """.trimIndent())
                             
-                            println("Inserting sample data...")
-                            statement.execute("INSERT INTO agents (name, role) VALUES ('Gemini', 'Assistant')")
-                            statement.execute("INSERT INTO agents (name, role) VALUES ('Konze-Bot', 'DB-Manager')")
-                            
-                            val resultSet = statement.executeQuery("SELECT * FROM agents")
-                            println("Retrieving data from 'agents' table:")
-                            while (resultSet.next()) {
-                                println(" - ID: ${resultSet.getInt("id")}, Name: ${resultSet.getString("name")}, Role: ${resultSet.getString("role")}")
-                            }
+                            println("Inserting sample data with full-access-profile...")
+                            statement.execute("INSERT INTO agents (name, role) VALUES ('Master-Agent', 'Admin')")
                         }
                     }
-                    println("Example table created and verified successfully.")
+                }
+
+                // 2. Try to insert with read-only profile
+                val readOnlyProfile = "read-only-profile"
+                val readOnlyDs = engine.poolManager.getPool(readOnlyProfile)
+                
+                if (readOnlyDs != null) {
+                    println("Attempting to insert into 'agents' with read-only-profile (expecting failure)...")
+                    try {
+                        readOnlyDs.connection.use { connection ->
+                            connection.createStatement().use { statement ->
+                                statement.execute("INSERT INTO agents (name, role) VALUES ('Unauthorized', 'Hacker')")
+                            }
+                        }
+                        println("ERROR: Insert unexpectedly succeeded with read-only-profile!")
+                    } catch (e: SQLException) {
+                        println("SUCCESS: Insert failed as expected. Error: ${e.message}")
+                    }
                 } else {
-                    println("Error: Could not find connection pool for profile '$profileName'")
+                    println("Error: Could not find connection pool for profile '$readOnlyProfile'")
+                }
+
+                // 3. Verify read access works
+                if (readOnlyDs != null) {
+                    println("Verifying read access with read-only-profile...")
+                    try {
+                        readOnlyDs.connection.use { connection ->
+                            connection.createStatement().use { statement ->
+                                val rs = statement.executeQuery("SELECT count(*) FROM agents")
+                                if (rs.next()) {
+                                    println("Successfully read count: ${rs.getInt(1)}")
+                                }
+                            }
+                        }
+                    } catch (e: SQLException) {
+                        println("Error: Read access failed. ${e.message}")
+                    }
                 }
             }
             
-            println("Example Application finished. Pools closed.")
+            println("Example Application finished.")
         }
     }
 }

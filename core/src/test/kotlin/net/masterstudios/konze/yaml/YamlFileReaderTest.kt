@@ -66,11 +66,14 @@ class YamlFileReaderTest {
         val result = reader.readAs<ConfigurationFile>()
         
         val profiles = result.konze.profiles
-        assertEquals(1, profiles.size)
-        assertTrue(profiles.containsKey("example-profile"))
+        assertEquals(2, profiles.size)
+        assertTrue(profiles.containsKey("full-access-profile"))
+        assertTrue(profiles.containsKey("read-only-profile"))
         
-        val profile = profiles["example-profile"]!!
-        assertEquals(14, profile.permissions.size)
+        val profile = profiles["full-access-profile"]!!
+        assertEquals(13, profile.permissions.size)
+        assertTrue(profile.permissions.contains(Permission.SELECT))
+        assertTrue(profile.permissions.contains(Permission.INSERT))
         
         assertEquals(1000, profile.configuration.query.rowLimit)
         assertEquals("60s", profile.configuration.query.executionTimeout)
@@ -103,7 +106,7 @@ class YamlFileReaderTest {
         
         val profile = profiles["example-profile"]!!
         assertEquals(1, profile.permissions.size)
-        assertEquals("select", profile.permissions[0])
+        assertEquals(Permission.SELECT, profile.permissions[0])
         
         assertNotNull(result.konze.databaseAdministration)
         assertEquals("net.masterstudios.konze.driver.postgres.PostgresDatabaseDriver", result.konze.databaseAdministration!!.access.driver)

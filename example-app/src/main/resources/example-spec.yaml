@@ -1,6 +1,6 @@
 konze:
   profiles:
-    example-profile:
+    full-access-profile:
       permissions:
         - select
         - insert
@@ -15,7 +15,6 @@ konze:
         - connect
         - temporary
         - execute
-        - all privileges
         
       configuration:
         query:
@@ -51,6 +50,13 @@ konze:
         readOnly: false
         validationTimeout: 5000
         leakDetectionThreshold: 2000
+
+    read-only-profile:
+      permissions:
+        - select
+      pool:
+        jdbcUrl: jdbc:postgresql://localhost:5432/konze_db
+        # Password will be generated automatically
         
   databaseAdministration:
     access:

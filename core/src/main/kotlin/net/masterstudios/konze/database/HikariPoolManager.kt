@@ -17,6 +17,7 @@ public class HikariPoolManager(
             val poolConfig = profileConfig.pool
             val username = poolConfig.username ?: "konze_$profileName"
             val password = poolConfig.password ?: passwordGenerator.generate()
+            poolConfig.password = password // Store it back
             val schema = poolConfig.schema ?: "public"
 
             databaseAdministrationManager.ensureUserExistenceAndPermissions(username, password, schema, profileConfig.permissions)

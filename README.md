@@ -22,9 +22,9 @@ A Text-to-SQL database connection management framework for agents. When you want
 
 Example config yaml file:
 ```yaml
-konze:
+- konze-db-example:
   profiles:
-    admin-agent:
+    example-profile:
       permissions:
         - select
         - insert
@@ -39,7 +39,8 @@ konze:
         - connect
         - temporary
         - execute
-        #- all privileges
+        - all privileges
+
       configuration:
         query:
           rowLimit: 1000
@@ -52,12 +53,14 @@ konze:
           slowQueryThreshold: 500ms
           slowQueryLogging: true
           slowQueryLog: ./logs/slow-queries.log
-          
+      schemaDiscoveryEndpoint:
+        enabled: true
+        endpoint: /schema-discovery
+        authentication: true
+        rateLimiting: 100 requests per minute
       pool:
         dataSourceClassName: com.zaxxer.hikari.HikariDataSource
-        jdbcUrl: jdbc:postgresql://localhost:5432/mydb
-        username: user
-        password: password
+        jdbcUrl: jdbc:postgresql://localhost:5432/konze_db
         autoCommit: true
         connectionTimeout: 30000
         idleTimeout: 600000
@@ -78,11 +81,12 @@ konze:
   databaseAdministration:
     access:
       driver: net.masterstudios.konze.driver.postgres.PostgresDatabaseDriver
-      jdbcUrl: jdbc:postgresql://localhost:5432/mydb
-      username: admin_user
-      password: admin_password
+      jdbcUrl: jdbc:postgresql://localhost:5432/konze_db
+      username: konze_user
+      password: konze_password
     schema:
       updateTrigger: true
       deleteTrigger: true
       insertTrigger: true
+
 ```

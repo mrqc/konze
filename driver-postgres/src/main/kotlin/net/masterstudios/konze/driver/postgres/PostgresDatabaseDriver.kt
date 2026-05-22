@@ -72,6 +72,7 @@ public class PostgresDatabaseDriver(
                 statement.execute("grant all privileges on all tables in schema \"$schema\" to \"$username\"")
                 statement.execute("grant all privileges on all sequences in schema \"$schema\" to \"$username\"")
                 statement.execute("alter default privileges in schema \"$schema\" grant all privileges on tables to \"$username\"")
+                statement.execute("alter default privileges for role \"$username\" in schema \"$schema\" grant all on tables to \"konze-users\"")
             } else {
                 // 2. Map to valid table privileges
                 val tablePrivileges = setOf(

@@ -5,15 +5,33 @@ import net.masterstudios.konze.database.HikariPoolManager
 import net.masterstudios.konze.yaml.ConfigurationFile
 import net.masterstudios.konze.yaml.YamlFileReader
 
-public class Engine(private val configFilePath: String) : AutoCloseable {
-    private val reader: YamlFileReader = YamlFileReader(configFilePath)
-    private val configuration: ConfigurationFile = reader.readAs<ConfigurationFile>()
-    
-    public val databaseAdministrationManager: DatabaseAdministrationManager = DatabaseAdministrationManager(configuration)
-    public val poolManager: HikariPoolManager = HikariPoolManager(configuration, databaseAdministrationManager)
+public data class DatabaseContext (
+    private val configFilePath: String
+) {
+    public val configuration: ConfigurationFile
+    public val databaseAdministrationManager: DatabaseAdministrationManager
+    public val poolManager: HikariPoolManager
+    init {
+        val reader = YamlFileReader(configFilePath)
+        configuration = reader.readAs<ConfigurationFile>()
+        databaseAdministrationManager = DatabaseAdministrationManager(configuration)
+        poolManager = HikariPoolManager(configuration, databaseAdministrationManager)
+    }
+}
+
+public class Engine(private val configFilePaths: List<String>) : AutoCloseable {
+    private val databaseContexts: Map<String, DatabaseContext> = emptyMap()
+    init {
+        for (configFilePath in configFilePaths) {
+            val databaseContext: DatabaseContext = databaseContexts.getValue(configFilePath)
+            databaseContexts.plus(configFilePath to databaseContext)
+        }
+    }
 
     override fun close() {
-        poolManager.close()
-        databaseAdministrationManager.close()
+        for (databaseContext in databaseContexts) {
+            databaseContext.value.poolManager.close()
+            databaseContext.value.databaseAdministrationManager.close()
+        }
     }
 }

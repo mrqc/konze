@@ -14,6 +14,9 @@ public data class DatabaseContext (
     init {
         val reader = YamlFileReader(configFilePath)
         configuration = reader.readAs<ConfigurationFile>()
+        require(!configuration.konze.databaseContextId.isNullOrBlank()) {
+            "databaseContextId must be filled up in configuration"
+        }
         databaseAdministrationManager = DatabaseAdministrationManager(configuration)
         poolManager = HikariPoolManager(configuration, databaseAdministrationManager)
     }
@@ -24,7 +27,7 @@ public class Engine(private val configFilePaths: List<String>) : AutoCloseable {
     init {
         for (configFilePath in configFilePaths) {
             val databaseContext: DatabaseContext = databaseContexts.getValue(configFilePath)
-            databaseContexts.plus(configFilePath to databaseContext)
+            databaseContexts.plus(databaseContext.configuration.konze.databaseContextId to databaseContext)
         }
     }
 

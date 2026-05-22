@@ -7,6 +7,7 @@ public data class ConfigurationFile(
 )
 
 public data class Konze(
+    public val databaseContextId: String? = null,
     public val profiles: Map<String, ProfileConfiguration> = emptyMap(),
     public val databaseAdministration: DatabaseAdministration? = null
 )

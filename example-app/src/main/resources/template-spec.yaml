@@ -1,4 +1,5 @@
 konze:
+  databaseContextId: sample-context
   profiles:
     example-profile:
       permissions:

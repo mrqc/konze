@@ -35,9 +35,9 @@ konze:
         authentication: true
         rateLimiting: 100 requests per minute
       pool:
-        jdbcUrl: jdbc:h2:mem:konze_example;DB_CLOSE_DELAY=-1
-        username: sa
-        password: ""
+        jdbcUrl: jdbc:postgresql://localhost:5432/konze_db
+        username: konze_user
+        password: konze_password
         autoCommit: true
         connectionTimeout: 30000
         idleTimeout: 600000
@@ -54,10 +54,10 @@ konze:
         
   databaseAdministration:
     access:
-      driver: net.masterstudios.konze.driver.h2.H2DatabaseDriver
-      jdbcUrl: jdbc:h2:mem:konze_example;DB_CLOSE_DELAY=-1
-      username: sa
-      password: ""
+      driver: net.masterstudios.konze.driver.postgres.PostgresDatabaseDriver
+      jdbcUrl: jdbc:postgresql://localhost:5432/konze_db
+      username: konze_user
+      password: konze_password
     schema:
       updateTrigger: true
       deleteTrigger: true

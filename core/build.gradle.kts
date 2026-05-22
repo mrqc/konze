@@ -17,7 +17,7 @@ dependencies {
     api("com.zaxxer:HikariCP:5.1.0")
     testImplementation(kotlin("test"))
     testImplementation("com.h2database:h2:2.2.224")
-    testImplementation(project(":driver-h2"))
+    testImplementation(project(":driver-postgres"))
 }
 
 kotlin {

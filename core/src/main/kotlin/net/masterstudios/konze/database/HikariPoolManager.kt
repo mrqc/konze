@@ -5,20 +5,28 @@ import com.zaxxer.hikari.HikariDataSource
 import net.masterstudios.konze.yaml.ConfigurationFile
 import java.io.Closeable
 
-public class HikariPoolManager(private val configuration: ConfigurationFile) : Closeable {
+public class HikariPoolManager(
+    private val configuration: ConfigurationFile,
+    private val databaseAdministrationManager: DatabaseAdministrationManager
+) : Closeable {
     private val pools: Map<String, HikariDataSource>
+    private val passwordGenerator = PasswordGenerator()
 
     init {
         pools = configuration.konze.profiles.mapValues { (profileName, profileConfig) ->
             val poolConfig = profileConfig.pool
+            val username = poolConfig.username ?: "konze_$profileName"
+            val password = poolConfig.password ?: passwordGenerator.generate()
+            val schema = poolConfig.schema ?: "public"
+
+            databaseAdministrationManager.ensureUserExistenceAndPermissions(username, password, schema, profileConfig.permissions)
+
             val config = HikariConfig().apply {
-                // Use profile name as part of pool name
                 poolName = "${poolConfig.poolName ?: "KonzePool"}-$profileName"
-                
                 dataSourceClassName = poolConfig.dataSourceClassName
                 jdbcUrl = poolConfig.jdbcUrl
-                username = poolConfig.username
-                password = poolConfig.password
+                this.username = username
+                this.password = password
                 isAutoCommit = poolConfig.autoCommit
                 connectionTimeout = poolConfig.connectionTimeout
                 idleTimeout = poolConfig.idleTimeout
@@ -33,7 +41,7 @@ public class HikariPoolManager(private val configuration: ConfigurationFile) : C
                 transactionIsolation = poolConfig.transactionIsolation
                 validationTimeout = poolConfig.validationTimeout
                 leakDetectionThreshold = poolConfig.leakDetectionThreshold
-                schema = poolConfig.schema
+                this.schema = schema
             }
             HikariDataSource(config)
         }

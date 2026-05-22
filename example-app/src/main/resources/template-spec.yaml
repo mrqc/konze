@@ -36,9 +36,7 @@ konze:
         rateLimiting: 100 requests per minute
       pool:
         dataSourceClassName: com.zaxxer.hikari.HikariDataSource
-        jdbcUrl: jdbc:mysql://localhost:3306/mydb
-        username: user
-        password: password
+        jdbcUrl: jdbc:postgresql://localhost:5432/konze_db
         autoCommit: true
         connectionTimeout: 30000
         idleTimeout: 600000
@@ -58,10 +56,10 @@ konze:
         
   databaseAdministration:
     access:
-      driver: net.masterstudios.konze.driver.h2.H2DatabaseDriver
-      jdbcUrl: jdbc:mysql://localhost:3306/mydb
-      username: admin
-      password: adminpassword
+      driver: net.masterstudios.konze.driver.postgres.PostgresDatabaseDriver
+      jdbcUrl: jdbc:postgresql://localhost:5432/konze_db
+      username: konze_user
+      password: konze_password
     schema:
       updateTrigger: true
       deleteTrigger: true

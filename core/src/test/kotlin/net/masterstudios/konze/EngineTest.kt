@@ -1,6 +1,6 @@
 package net.masterstudios.konze
 
-import net.masterstudios.konze.driver.h2.H2DatabaseDriver
+import net.masterstudios.konze.database.TestDatabaseDriver
 import java.io.File
 import kotlin.test.Test
 import kotlin.test.assertNotNull
@@ -21,6 +21,12 @@ class EngineTest {
                     username: sa
                     password: ""
                     initializationFailTimeout: -1
+              databaseAdministration:
+                access:
+                  driver: net.masterstudios.konze.database.TestDatabaseDriver
+                  jdbcUrl: jdbc:h2:mem:engine_test;DB_CLOSE_DELAY=-1
+                  username: sa
+                  password: ""
         """.trimIndent()
 
         val tempFile = File.createTempFile("engine-test", ".yaml")
@@ -51,6 +57,7 @@ class EngineTest {
                     initializationFailTimeout: -1
               databaseAdministration:
                 access:
+                  driver: net.masterstudios.konze.database.TestDatabaseDriver
                   jdbcUrl: jdbc:h2:mem:admin_test;DB_CLOSE_DELAY=-1
                   username: sa
                   password: ""
@@ -83,7 +90,7 @@ class EngineTest {
                     initializationFailTimeout: -1
               databaseAdministration:
                 access:
-                  driver: net.masterstudios.konze.driver.h2.H2DatabaseDriver
+                  driver: net.masterstudios.konze.database.TestDatabaseDriver
                   jdbcUrl: jdbc:h2:mem:dynamic_test;DB_CLOSE_DELAY=-1
                   username: sa
                   password: ""
@@ -96,7 +103,7 @@ class EngineTest {
             Engine(tempFile.absolutePath).use { engine ->
                 val adminManager = engine.databaseAdministrationManager
                 assertNotNull(adminManager.driver)
-                assertTrue(adminManager.driver is H2DatabaseDriver)
+                assertTrue(adminManager.driver is TestDatabaseDriver)
             }
         } finally {
             tempFile.delete()

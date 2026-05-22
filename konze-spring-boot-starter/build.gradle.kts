@@ -10,6 +10,8 @@ repositories {
 }
 
 dependencies {
+    implementation(project(":core"))
+    implementation("org.springframework.boot:spring-boot-autoconfigure:3.2.5")
     testImplementation(kotlin("test"))
 }
 

@@ -9,8 +9,8 @@ public class Engine(private val configFilePath: String) : AutoCloseable {
     private val reader: YamlFileReader = YamlFileReader(configFilePath)
     private val configuration: ConfigurationFile = reader.readAs<ConfigurationFile>()
     
-    public val poolManager: HikariPoolManager = HikariPoolManager(configuration)
     public val databaseAdministrationManager: DatabaseAdministrationManager = DatabaseAdministrationManager(configuration)
+    public val poolManager: HikariPoolManager = HikariPoolManager(configuration, databaseAdministrationManager)
 
     override fun close() {
         poolManager.close()

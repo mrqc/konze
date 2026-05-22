@@ -30,9 +30,10 @@ class ExampleApplication {
                     dataSource.connection.use { connection ->
                         connection.createStatement().use { statement ->
                             println("Creating example table 'agents'...")
+                            statement.execute("DROP TABLE IF EXISTS agents")
                             statement.execute("""
                                 CREATE TABLE agents (
-                                    id INT PRIMARY KEY AUTO_INCREMENT,
+                                    id SERIAL PRIMARY KEY,
                                     name VARCHAR(255) NOT NULL,
                                     role VARCHAR(255)
                                 )

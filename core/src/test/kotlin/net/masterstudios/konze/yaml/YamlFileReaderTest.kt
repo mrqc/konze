@@ -83,7 +83,7 @@ class YamlFileReaderTest {
         assertTrue(profile.schemaDiscoveryEndpoint.enabled)
         assertEquals("/schema-discovery", profile.schemaDiscoveryEndpoint.endpoint)
         
-        assertEquals("jdbc:h2:mem:konze_example;DB_CLOSE_DELAY=-1", profile.pool.jdbcUrl)
+        assertEquals("jdbc:postgresql://localhost:5432/konze_db", profile.pool.jdbcUrl)
         assertEquals(10, profile.pool.maximumPoolSize)
 
         assertNotNull(result.konze.databaseAdministration)
@@ -105,10 +105,8 @@ class YamlFileReaderTest {
         assertEquals(1, profile.permissions.size)
         assertEquals("select", profile.permissions[0])
         
-        assertEquals("jdbc:h2:mem:konze_example;DB_CLOSE_DELAY=-1", profile.pool.jdbcUrl)
-        
         assertNotNull(result.konze.databaseAdministration)
-        assertEquals("net.masterstudios.konze.driver.h2.H2DatabaseDriver", result.konze.databaseAdministration!!.access.driver)
+        assertEquals("net.masterstudios.konze.driver.postgres.PostgresDatabaseDriver", result.konze.databaseAdministration!!.access.driver)
     }
 
     private fun assertNotNull(actual: Any?) {

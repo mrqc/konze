@@ -1,10 +1,16 @@
 package net.masterstudios.konze.spring
 
-class KonzeAutoConfiguration {
+import net.masterstudios.konze.Engine
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
+import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Configuration
+
+@Configuration
+public open class KonzeAutoConfiguration {
     @Bean
-    @ConditionalOnMissingBean // Allows users to override this bean with their own custom setup if they want
-    open fun konzeEngine(): KonzeEngine {
-        // Instantiate your library engine here
-        return KonzeEngine()
+    @ConditionalOnMissingBean
+    public open fun konzeEngine(): Engine {
+        // This is just a placeholder, in a real scenario we'd need a config path
+        return Engine("example-app/src/main/resources/example-spec.yaml")
     }
 }

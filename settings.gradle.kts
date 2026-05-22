@@ -3,8 +3,8 @@ plugins {
 }
 rootProject.name = "konze"
 
-include(":core")
-include(":driver-postgres")
+include(":konze-core")
+include(":konze-driver-postgres")
 include(":konze-spring-boot-starter")
 include(":example-app")
 

@@ -1,18 +1,17 @@
 plugins {
     kotlin("jvm")
+    kotlin("plugin.spring")
 }
-
-group = "net.masterstudios"
-version = "1.0-SNAPSHOT"
 
 repositories {
     mavenCentral()
 }
 
 dependencies {
-    implementation(project(":core"))
+    implementation(project(":konze-core"))
     implementation("org.springframework.boot:spring-boot-autoconfigure:3.2.5")
     testImplementation(kotlin("test"))
+    implementation(kotlin("stdlib"))
 }
 
 kotlin {

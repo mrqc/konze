@@ -3,15 +3,12 @@ plugins {
     `maven-publish`
 }
 
-group = "net.masterstudios"
-version = "1.0-SNAPSHOT"
-
 repositories {
     mavenCentral()
 }
 
 dependencies {
-    implementation(project(":core"))
+    implementation(project(":konze-core"))
     testImplementation(kotlin("test"))
 }
 

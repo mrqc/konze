@@ -1,0 +1,5 @@
+konze:
+  # This path is relative to the working directory when running the app
+  # For Spring Boot, we can also put it in src/main/resources
+  config-files:
+    - "example-spring-boot-app/src/main/resources/example-spec.yaml"

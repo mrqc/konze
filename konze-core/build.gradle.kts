@@ -4,9 +4,6 @@ plugins {
     `java-library`
 }
 
-group = "net.masterstudios"
-version = "1.0-SNAPSHOT"
-
 repositories {
     mavenCentral()
 }
@@ -17,7 +14,7 @@ dependencies {
     api("com.zaxxer:HikariCP:5.1.0")
     testImplementation(kotlin("test"))
     testImplementation("com.h2database:h2:2.2.224")
-    testImplementation(project(":driver-postgres"))
+    testImplementation(project(":konze-driver-postgres"))
 }
 
 kotlin {

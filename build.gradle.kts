@@ -1,9 +1,10 @@
 plugins {
     kotlin("jvm") version "2.3.10" apply false
+    kotlin("plugin.spring") version "2.3.10" apply false
 }
 
-group = "net.masterstudios"
-version = "1.0-SNAPSHOT"
+group = "io.github.mrqc"
+version = "0.1.0-SNAPSHOT"
 
 subprojects {
     repositories {
@@ -11,16 +12,18 @@ subprojects {
     }
 
     plugins.withType<JavaPlugin> {
-        apply(plugin = "maven-publish")
+        if (!project.name.contains("example")) {
+            apply(plugin = "maven-publish")
 
-        configure<PublishingExtension> {
-            publications {
-                create<MavenPublication>("mavenJava") {
-                    from(components["java"])
+            configure<PublishingExtension> {
+                publications {
+                    create<MavenPublication>("mavenJava") {
+                        from(components["java"])
 
-                    groupId = "io.github.mrqc"
-                    version = "0.1.0-SNAPSHOT"
-                    artifactId = "konze-${project.name}"
+                        groupId = rootProject.group.toString()
+                        version = rootProject.version.toString()
+                        artifactId = if (project.name.startsWith("konze")) project.name else "konze-${project.name}"
+                    }
                 }
             }
         }

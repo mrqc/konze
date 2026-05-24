@@ -6,6 +6,9 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.Primary
+import javax.sql.DataSource
+import kotlin.collections.flatten
 
 @ConfigurationProperties(prefix = "konze")
 public data class KonzeProperties(
@@ -23,4 +26,26 @@ public open class KonzeAutoConfiguration {
         }
         return Engine(paths)
     }
+
+    @Primary
+    @Bean("dataSource")
+    fun routingDataSource(engine: Engine): DataSource {
+        val targets: MutableMap<Any, Any> = mutableMapOf()
+        for ((databaseContextId, databaseContext) in engine.databaseContexts) {
+            val pools = databaseContext.poolManager.getAllPools()
+            for ((poolKey, dataSource) in pools) {
+                val compositeKey = "$databaseContextId.$poolKey"
+                targets[compositeKey as Any] = dataSource as Any
+                if (engine.databaseContexts.size == 1) {
+                    targets[poolKey as Any] = dataSource as Any
+                }
+            }
+        }
+
+        val routing = DynamicRoutingDataSource()
+        routing.setTargetDataSources(targets)
+        routing.afterPropertiesSet()
+        return routing
+    }
+
 }

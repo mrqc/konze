@@ -10,6 +10,7 @@ repositories {
 dependencies {
     implementation(project(":konze-core"))
     implementation("org.springframework.boot:spring-boot-autoconfigure:3.2.5")
+    implementation("org.springframework.boot:spring-boot-starter-jdbc:3.2.5")
     testImplementation(kotlin("test"))
     implementation(kotlin("stdlib"))
 }

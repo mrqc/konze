@@ -23,7 +23,7 @@ public data class DatabaseContext (
 }
 
 public class Engine(private val configFilePaths: List<String>) : AutoCloseable {
-    private val databaseContexts: MutableMap<String, DatabaseContext> = mutableMapOf()
+    public val databaseContexts: MutableMap<String, DatabaseContext> = mutableMapOf()
     init {
         for (configFilePath in configFilePaths) {
             val databaseContext = DatabaseContext(configFilePath)

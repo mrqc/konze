@@ -1,5 +1,13 @@
 konze:
   # This path is relative to the working directory when running the app
-  # For Spring Boot, we can also put it in src/main/resources
   config-files:
-    - "example-spring-boot-app/src/main/resources/example-spec.yaml"
+    - "src/main/resources/example-spec.yaml"
+
+spring:
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: none
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect

@@ -9,6 +9,7 @@ repositories {
 
 dependencies {
     implementation(project(":konze-core"))
+    implementation("org.postgresql:postgresql:42.7.3")
     testImplementation(kotlin("test"))
 }
 

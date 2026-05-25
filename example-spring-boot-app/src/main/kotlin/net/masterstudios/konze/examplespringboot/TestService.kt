@@ -16,9 +16,18 @@ class TestService(private val testRepository: TestRepository) {
         } catch (e: Exception) {
             println("Exception while saving: ${e.message}")
         }
-        setDataSourceType("full-access-profile")
-        testRepository.save(a)
         testRepository.findAll()
+        setDataSourceType("write-only-profile")
+        testRepository.save(a)
+        try {
+            testRepository.findAll()
+        } catch (e: Exception) {
+            println("Exception while reading: ${e.message}")
+        }
+        
+        setDataSourceType("full-access-profile")
+        testRepository.findAll()
+        testRepository.deleteAll()
         clearDataSourceType()
     }
 }

@@ -57,6 +57,12 @@ konze:
         - select
       pool:
         jdbcUrl: jdbc:postgresql://localhost:5432/konze_db
+
+    write-only-profile:
+      permissions:
+        - insert
+      pool:
+        jdbcUrl: jdbc:postgresql://localhost:5432/konze_db
         
   databaseAdministration:
     access:

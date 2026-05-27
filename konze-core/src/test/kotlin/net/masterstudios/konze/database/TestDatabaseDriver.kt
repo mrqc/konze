@@ -18,4 +18,5 @@ public class TestDatabaseDriver(
     override fun revokeAllPermissionsOnUser(username: String, schema: String) {}
     override fun setPasswordToUser(username: String, password: String) {}
     override fun grantPermissionsOnUser(username: String, schema: String, permissions: List<Permission>) {}
+    override fun setQueryTimeoutForUser(username: String, executionTimeout: String) {}
 }

@@ -18,25 +18,24 @@ profiles:
       
 configuration:
   query:
-    row-limit: 1000
-    execution-timeout: 60s
-    execution-logging: true
-    execution-log: ./logs/execution.log
+    executionTimeout: 60s
+    executionLogging: true
+    executionLog: ./logs/execution.log
   audit:
     log: ./logs/audit.log
-    schema-adaption:
-      - update-trigger: true
-      - delete-trigger: true
-      - insert-trigger: true
+    schemaAdaption:
+      - updateTrigger: true
+      - deleteTrigger: true
+      - insertTrigger: true
   monitoring:
-    slow-query-threshold: 500ms
-    slow-query-logging: true
-    slow-query-log: ./logs/slow-queries.log
-  schema-discovery-endpoint:
+    slowQueryThreshold: 500ms
+    slowQueryLogging: true
+    slowQueryLog: ./logs/slow-queries.log
+  schemaDiscoveryEndpoint:
     enabled: true
     endpoint: /schema-discovery
     authentication: true
-    rate-limiting: 100 requests per minute
+    rateLimiting: 100 requests per minute
   pool:
     dataSourceClassName: com.zaxxer.hikari.HikariDataSource
     jdbcUrl: jdbc:mysql://localhost:3306/mydb
@@ -47,13 +46,13 @@ configuration:
     idleTimeout: 600000
     keepaliveTime: 0
     maxLifetime: 1800000
-    connectionTestQuery: SELECT 1
+    connectionTestQuery: select 1
     minimumIdle: 10
     maximumPoolSize: 20
     poolName: MyHikariPool
     initializationFailTimeout: 1
     readOnly: false
-    connectionInitSql: SELECT 1
+    connectionInitSql: select 1
     transactionIsolation: TRANSACTION_READ_COMMITTED
     validationTimeout: 5000
     leakDetectionThreshold: 2000

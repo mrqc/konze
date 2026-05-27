@@ -66,16 +66,16 @@ class YamlFileReaderTest {
         val result = reader.readAs<ConfigurationFile>()
         
         val profiles = result.konze.profiles
-        assertEquals(2, profiles.size)
+        assertEquals(3, profiles.size)
         assertTrue(profiles.containsKey("full-access-profile"))
         assertTrue(profiles.containsKey("read-only-profile"))
+        assertTrue(profiles.containsKey("write-only-profile"))
         
         val profile = profiles["full-access-profile"]!!
         assertEquals(13, profile.permissions.size)
         assertTrue(profile.permissions.contains(Permission.SELECT))
         assertTrue(profile.permissions.contains(Permission.INSERT))
         
-        assertEquals(1000, profile.configuration.query.rowLimit)
         assertEquals("60s", profile.configuration.query.executionTimeout)
         assertTrue(profile.configuration.query.executionLogging)
         
@@ -90,9 +90,10 @@ class YamlFileReaderTest {
         assertEquals(10, profile.pool.maximumPoolSize)
 
         assertNotNull(result.konze.databaseAdministration)
-        assertTrue(result.konze.databaseAdministration!!.schema.updateTrigger)
-        assertTrue(result.konze.databaseAdministration!!.schema.deleteTrigger)
-        assertTrue(result.konze.databaseAdministration!!.schema.insertTrigger)
+        val admin = result.konze.databaseAdministration!!
+        assertTrue(admin.schema.updateTrigger)
+        assertTrue(admin.schema.deleteTrigger)
+        assertTrue(admin.schema.insertTrigger)
     }
 
     @Test
@@ -109,7 +110,7 @@ class YamlFileReaderTest {
         assertEquals(Permission.SELECT, profile.permissions[0])
         
         assertNotNull(result.konze.databaseAdministration)
-        assertEquals("net.masterstudios.konze.driver.postgres.PostgresDatabaseDriver", result.konze.databaseAdministration!!.access.driver)
+        assertEquals("net.masterstudios.konze.driver.postgres.PostgresDatabaseDriver", result.konze.databaseAdministration?.access?.driver)
     }
 
     private fun assertNotNull(actual: Any?) {

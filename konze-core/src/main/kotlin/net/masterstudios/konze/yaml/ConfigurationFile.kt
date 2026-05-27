@@ -57,7 +57,6 @@ public data class ProfileSpecificConfiguration(
 )
 
 public data class QueryConfiguration(
-    public val rowLimit: Int = 1000,
     public val executionTimeout: String = "60s",
     public val executionLogging: Boolean = true,
     public val executionLog: String = "./logs/execution.log"

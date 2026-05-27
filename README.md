@@ -46,7 +46,6 @@ Example config yaml file:
 
       configuration:
         query:
-          rowLimit: 1000
           executionTimeout: 60s
           executionLogging: true
           executionLog: ./logs/execution.log

@@ -1,5 +1,8 @@
 # Konze
 
+| :exclamation:  Under Development as per 27th may 2026   |
+|----------------------------------------------|
+
 ## tl;dr
 Text-to-SQL database connection management framework for agents, with 
 * recovery of data

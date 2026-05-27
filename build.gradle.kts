@@ -3,7 +3,7 @@ plugins {
     kotlin("plugin.spring") version "2.3.10" apply false
 }
 
-group = "io.github.mrqc"
+group = "net.masterstudios"
 version = "0.1.0-SNAPSHOT"
 
 subprojects {

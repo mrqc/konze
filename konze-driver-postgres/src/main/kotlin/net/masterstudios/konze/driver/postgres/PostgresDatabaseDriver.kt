@@ -106,4 +106,10 @@ public class PostgresDatabaseDriver(
             }
         }
     }
+
+    override fun setQueryTimeoutForUser(username: String, executionTimeout: String) {
+        connection.createStatement().use { statement ->
+            statement.execute("alter user \"$username\" set statement_timeout = '" + executionTimeout + "'");
+        }
+    }
 }

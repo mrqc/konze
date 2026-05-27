@@ -20,7 +20,12 @@ public class HikariPoolManager(
             poolConfig.password = password // Store it back
             val schema = poolConfig.schema ?: "public"
 
-            databaseAdministrationManager.ensureUserExistenceAndPermissions(username, password, schema, profileConfig.permissions)
+            databaseAdministrationManager.ensureUserExistenceAndPermissions(
+                username, 
+                password, 
+                schema, 
+                profileConfig.permissions,
+                profileConfig.configuration)
 
             val config = HikariConfig().apply {
                 poolName = "${poolConfig.poolName ?: "KonzePool"}-$profileName"

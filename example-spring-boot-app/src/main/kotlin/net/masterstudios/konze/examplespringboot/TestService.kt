@@ -1,7 +1,5 @@
 package net.masterstudios.konze.examplespringboot
 
-import net.masterstudios.konze.spring.DataSourceContextHolder.clearDataSourceType
-import net.masterstudios.konze.spring.DataSourceContextHolder.setDataSourceType
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.util.UUID

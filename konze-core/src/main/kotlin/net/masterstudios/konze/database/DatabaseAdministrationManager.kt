@@ -3,6 +3,7 @@ package net.masterstudios.konze.database
 import net.masterstudios.konze.yaml.ConfigurationFile
 import net.masterstudios.konze.yaml.DatabaseAdministration
 import net.masterstudios.konze.yaml.Permission
+import net.masterstudios.konze.yaml.ProfileSpecificConfiguration
 import java.io.Closeable
 import java.sql.Connection
 import java.sql.DriverManager
@@ -38,7 +39,7 @@ public class DatabaseAdministrationManager(private val configuration: Configurat
         connection.close()
     }
 
-    public fun ensureUserExistenceAndPermissions(username: String, password: String, schema: String, permissions: List<Permission>) {
+    public fun ensureUserExistenceAndPermissions(username: String, password: String, schema: String, permissions: List<Permission>, configuration: ProfileSpecificConfiguration) {
         if (driver.isUserExisting(username)) {
             driver.revokeAllPermissionsOnUser(username, schema)
             driver.setPasswordToUser(username, password)
@@ -46,5 +47,6 @@ public class DatabaseAdministrationManager(private val configuration: Configurat
             driver.createUser(username, password)
         }
         driver.grantPermissionsOnUser(username, schema, permissions)
+        driver.setQueryTimeoutForUser(username, configuration.query.executionTimeout)
     }
 }

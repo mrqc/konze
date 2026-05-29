@@ -7,8 +7,12 @@ import net.bytebuddy.matcher.ElementMatchers
 
 public class DatabaseCommunicationAgent private constructor() {
 
-    public fun setQueryExecutionLogger(delegate: QueryExecutionDelegate) {
+    public fun setQueryExecutionInterceptorDelegate(delegate: QueryExecutionInterceptorDelegate) {
         QueryExecutionInterceptor.delegate = delegate
+    }
+    
+    public fun setMonitoringInterceptorDelegate(delegate: MonitoringInterceptorDelegate) {
+        MonitoringInterceptor.delegate = delegate
     }
 
     companion object {

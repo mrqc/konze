@@ -81,7 +81,7 @@ class YamlFileReaderTest {
         
         assertEquals("./logs/audit.log", profile.configuration.audit.log)
         
-        assertEquals("500ms", profile.configuration.monitoring.slowQueryThreshold)
+        assertEquals("500", profile.configuration.monitoring.slowQueryThreshold)
         
         assertTrue(profile.schemaDiscoveryEndpoint.enabled)
         assertEquals("/schema-discovery", profile.schemaDiscoveryEndpoint.endpoint)

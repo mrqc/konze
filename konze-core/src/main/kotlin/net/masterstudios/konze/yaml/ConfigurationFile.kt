@@ -67,7 +67,7 @@ public data class AuditConfiguration(
 )
 
 public data class MonitoringConfiguration(
-    public val slowQueryThreshold: String = "500ms",
+    public val slowQueryThreshold: String = "500",
     public val slowQueryLogging: Boolean = true,
     public val slowQueryLog: String = "./logs/slow-queries.log"
 )

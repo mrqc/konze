@@ -4,9 +4,10 @@ import net.bytebuddy.asm.Advice
 import java.sql.Statement
 import java.util.concurrent.ConcurrentHashMap
 
-object QueryExecutionInterceptor {
+
+object MonitoringInterceptor {
     @JvmField
-    public var delegate: QueryExecutionInterceptorDelegate? = null
+    public var delegate: MonitoringInterceptorDelegate? = null
 
     @JvmStatic
     private val statementTimestamps = ConcurrentHashMap<Statement, Long>()
@@ -19,11 +20,8 @@ object QueryExecutionInterceptor {
                 val sql = target.toString()
                 val connection = target.connection
                 val threadId = Thread.currentThread().threadId()
-                
                 statementTimestamps[target] = System.currentTimeMillis()
-                
                 delegate?.onStatementExecuteInvoke(sql, connection)
-                
                 println("[AGENT] [Thread-$threadId] executing sql: $sql")
                 return sql
             }
@@ -41,7 +39,6 @@ object QueryExecutionInterceptor {
                 val threadId = Thread.currentThread().threadId()
                 val startTime = statementTimestamps.remove(target)
                 val durationMs = if (startTime != null) System.currentTimeMillis() - startTime else -1L
-                
                 val connection = target.connection
                 delegate?.onStatementExecuteFinished(sql, connection, durationMs)
                 println("[AGENT] [Thread-$threadId] finished sql: $sql (took ${durationMs}ms)")

@@ -52,7 +52,7 @@ Example config yaml file:
         audit:
           log: ./logs/audit.log
         monitoring:
-          slowQueryThreshold: 500ms
+          slowQueryThreshold: 500
           slowQueryLogging: true
           slowQueryLog: ./logs/slow-queries.log
       schemaDiscoveryEndpoint:

@@ -6,7 +6,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
-class HikariPoolManagerTest {
+class HikariPoolWrapperManagerTest {
 
     private fun createConfig(profiles: Map<String, ProfileConfiguration>): ConfigurationFile {
         return ConfigurationFile(
@@ -56,9 +56,9 @@ class HikariPoolManagerTest {
             assertNotNull(manager.getPool("profile1"))
             assertNotNull(manager.getPool("profile2"))
             
-            assertEquals(5, manager.getPool("profile1")?.hikariConfigMXBean?.maximumPoolSize)
-            assertEquals(3, manager.getPool("profile2")?.hikariConfigMXBean?.maximumPoolSize)
-            assertTrue(manager.getPool("profile1")?.poolName?.contains("profile1") == true)
+            assertEquals(5, manager.getPool("profile1")?.hikariDataSource?.hikariConfigMXBean?.maximumPoolSize)
+            assertEquals(3, manager.getPool("profile2")?.hikariDataSource?.hikariConfigMXBean?.maximumPoolSize)
+            assertTrue(manager.getPool("profile1")?.hikariDataSource?.poolName?.contains("profile1") == true)
         }
     }
 
@@ -81,6 +81,37 @@ class HikariPoolManagerTest {
         HikariPoolManager(config, adminManager).use { manager ->
             val pool = manager.getPool("profile1")
             assertNotNull(pool)
+        }
+    }
+
+    @Test
+    fun `should get pool from connection`() {
+        val config = createConfig(
+            mapOf(
+                "profile1" to ProfileConfiguration(
+                    pool = PoolConfiguration(
+                        jdbcUrl = "jdbc:h2:mem:get_pool_test;DB_CLOSE_DELAY=-1",
+                        username = "sa",
+                        password = "",
+                        initializationFailTimeout = -1,
+                        schema = null
+                    )
+                )
+            )
+        )
+
+        val adminManager = DatabaseAdministrationManager(config)
+        HikariPoolManager(config, adminManager).use { manager ->
+            val pool = manager.getPool("profile1")
+            assertNotNull(pool)
+            
+            val connection = pool.hikariDataSource.connection
+            try {
+                val detectedPool = manager.getPoolFromConnection(connection)
+                assertEquals(pool, detectedPool)
+            } finally {
+                connection.close()
+            }
         }
     }
 }

@@ -35,9 +35,9 @@ public open class KonzeAutoConfiguration {
             val pools = databaseContext.poolManager.getAllPools()
             for ((poolKey, dataSource) in pools) {
                 val compositeKey = "$databaseContextId.$poolKey"
-                targets[compositeKey as Any] = dataSource as Any
+                targets[compositeKey as Any] = dataSource.hikariDataSource as Any
                 if (engine.databaseContexts.size == 1) {
-                    targets[poolKey as Any] = dataSource as Any
+                    targets[poolKey as Any] = dataSource.hikariDataSource as Any
                 }
             }
         }

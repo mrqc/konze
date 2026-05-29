@@ -25,7 +25,7 @@ tasks.jar {
 
     manifest {
         attributes(
-            "Premain-Class" to "net.masterstudios.konze.agent.SqlAgent",
+            "Premain-Class" to "net.masterstudios.konze.agent.DatabaseCommunicationAgent",
             "Can-Redefine-Classes" to "true",
             "Can-Retransform-Classes" to "true"
         )

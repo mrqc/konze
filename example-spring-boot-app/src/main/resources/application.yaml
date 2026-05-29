@@ -1,7 +1,7 @@
 konze:
   # This path is relative to the working directory when running the app
   config-files:
-    - "example-spring-boot-app/src/main/resources/example-spec.yaml"
+    - "src/main/resources/example-spec.yaml"
 
 spring:
   jpa:

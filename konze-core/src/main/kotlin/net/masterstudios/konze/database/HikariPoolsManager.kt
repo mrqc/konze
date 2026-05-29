@@ -2,6 +2,7 @@ package net.masterstudios.konze.database
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
+import net.masterstudios.konze.schemadiscovery.SchemaDiscovery
 import net.masterstudios.konze.yaml.ConfigurationFile
 import java.io.Closeable
 import java.sql.Connection
@@ -50,7 +51,21 @@ public class HikariPoolsManager(
                 leakDetectionThreshold = poolConfig.leakDetectionThreshold
                 this.schema = schema
             }
-            HikariPoolWrapper(hikariConfig, profileConfig)
+
+            val schemaDiscoveryClassName = configuration.konze.databaseAdministration?.access?.schemaDiscovery
+            val schemaDiscovery = if (schemaDiscoveryClassName != null) {
+                try {
+                    val clazz = Class.forName(schemaDiscoveryClassName)
+                    val constructor = clazz.getConstructor(String::class.java, String::class.java, String::class.java)
+                    constructor.newInstance(username, password, poolConfig.jdbcUrl) as SchemaDiscovery
+                } catch (e: Exception) {
+                    null
+                }
+            } else {
+                null
+            }
+
+            HikariPoolWrapper(hikariConfig, profileConfig, poolConfig, schemaDiscovery)
         }
     }
 

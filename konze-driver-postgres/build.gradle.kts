@@ -10,6 +10,7 @@ repositories {
 dependencies {
     implementation(project(":konze-core"))
     implementation("org.postgresql:postgresql:42.7.3")
+    implementation("us.fatehi:schemacrawler-postgresql:17.11.1")
     testImplementation(kotlin("test"))
 }
 

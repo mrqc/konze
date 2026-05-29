@@ -115,6 +115,7 @@ public data class SchemaConfiguration(
 
 public data class DatabaseAccess(
     public val driver: String? = null,
+    public val schemaDiscovery: String? = null,
     public val jdbcUrl: String? = null,
     public val username: String? = null,
     public val password: String? = null

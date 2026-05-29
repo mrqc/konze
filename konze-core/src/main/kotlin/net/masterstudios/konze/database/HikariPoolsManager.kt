@@ -7,7 +7,7 @@ import java.io.Closeable
 import java.sql.Connection
 
 
-public class HikariPoolManager(
+public class HikariPoolsManager(
     private val configuration: ConfigurationFile,
     private val databaseAdministrationManager: DatabaseAdministrationManager
 ) : Closeable {
@@ -19,17 +19,16 @@ public class HikariPoolManager(
             val poolConfig = profileConfig.pool
             val username = poolConfig.username ?: "konze_$profileName"
             val password = poolConfig.password ?: passwordGenerator.generate()
-            poolConfig.password = password // Store it back
-            val schema = poolConfig.schema
+            val schema = poolConfig.schema ?: "public"
 
             databaseAdministrationManager.ensureUserExistenceAndPermissions(
                 username, 
                 password, 
-                schema ?: "public", 
+                schema, 
                 profileConfig.permissions,
                 profileConfig.configuration)
 
-            val config = HikariConfig().apply {
+            val hikariConfig = HikariConfig().apply {
                 poolName = "${poolConfig.poolName ?: "KonzePool"}-$profileName"
                 dataSourceClassName = poolConfig.dataSourceClassName
                 jdbcUrl = poolConfig.jdbcUrl
@@ -51,7 +50,7 @@ public class HikariPoolManager(
                 leakDetectionThreshold = poolConfig.leakDetectionThreshold
                 this.schema = schema
             }
-            HikariPoolWrapper(config)
+            HikariPoolWrapper(hikariConfig, profileConfig)
         }
     }
 

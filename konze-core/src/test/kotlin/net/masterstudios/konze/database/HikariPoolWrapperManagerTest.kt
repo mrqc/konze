@@ -50,7 +50,7 @@ class HikariPoolWrapperManagerTest {
         )
 
         val adminManager = DatabaseAdministrationManager(config)
-        HikariPoolManager(config, adminManager).use { manager ->
+        HikariPoolsManager(config, adminManager).use { manager ->
             val pools = manager.getAllPools()
             assertEquals(2, pools.size)
             assertNotNull(manager.getPool("profile1"))
@@ -78,7 +78,7 @@ class HikariPoolWrapperManagerTest {
         )
 
         val adminManager = DatabaseAdministrationManager(config)
-        HikariPoolManager(config, adminManager).use { manager ->
+        HikariPoolsManager(config, adminManager).use { manager ->
             val pool = manager.getPool("profile1")
             assertNotNull(pool)
         }
@@ -94,14 +94,14 @@ class HikariPoolWrapperManagerTest {
                         username = "sa",
                         password = "",
                         initializationFailTimeout = -1,
-                        schema = null
+                        schema = "PUBLIC"
                     )
                 )
             )
         )
 
         val adminManager = DatabaseAdministrationManager(config)
-        HikariPoolManager(config, adminManager).use { manager ->
+        HikariPoolsManager(config, adminManager).use { manager ->
             val pool = manager.getPool("profile1")
             assertNotNull(pool)
             

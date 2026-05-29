@@ -83,7 +83,7 @@ public open class PoolConfiguration(
     public open val dataSourceClassName: String? = null,
     public open val jdbcUrl: String? = null,
     public open val username: String? = null,
-    public open var password: String? = null,
+    public open val password: String? = null,
     public open val autoCommit: Boolean = true,
     public open val connectionTimeout: Long = 30000,
     public open val idleTimeout: Long = 600000,

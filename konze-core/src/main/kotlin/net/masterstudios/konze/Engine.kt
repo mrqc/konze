@@ -2,7 +2,7 @@ package net.masterstudios.konze
 
 import net.masterstudios.konze.agent.DatabaseCommunicationAgent
 import net.masterstudios.konze.database.DatabaseAdministrationManager
-import net.masterstudios.konze.database.HikariPoolManager
+import net.masterstudios.konze.database.HikariPoolsManager
 import net.masterstudios.konze.logging.QueryExecutionLogger
 import net.masterstudios.konze.yaml.ConfigurationFile
 import net.masterstudios.konze.yaml.YamlFileReader
@@ -12,7 +12,7 @@ public data class DatabaseContext (
 ) {
     public val configuration: ConfigurationFile
     public val databaseAdministrationManager: DatabaseAdministrationManager
-    public val poolManager: HikariPoolManager
+    public val poolManager: HikariPoolsManager
     init {
         val reader = YamlFileReader(configFilePath)
         configuration = reader.readAs<ConfigurationFile>()
@@ -20,7 +20,7 @@ public data class DatabaseContext (
             "databaseContextId must be filled up in configuration"
         }
         databaseAdministrationManager = DatabaseAdministrationManager(configuration)
-        poolManager = HikariPoolManager(configuration, databaseAdministrationManager)
+        poolManager = HikariPoolsManager(configuration, databaseAdministrationManager)
     }
 }
 

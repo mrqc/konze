@@ -11,7 +11,7 @@ object QueryExecutionInterceptor {
     @JvmStatic
     private val statementTimestamps = ConcurrentHashMap<Statement, Long>()
 
-    @Advice.OnMethodEnter
+    @Advice.OnMethodEnter(inline = false)
     @JvmStatic
     fun enter(@Advice.This target: Any): String? {
         try {
@@ -33,7 +33,7 @@ object QueryExecutionInterceptor {
         return null
     }
 
-    @Advice.OnMethodExit(onThrowable = Throwable::class)
+    @Advice.OnMethodExit(onThrowable = Throwable::class, inline = false)
     @JvmStatic
     fun exit(@Advice.This target: Any, @Advice.Enter sql: String?) {
         try {

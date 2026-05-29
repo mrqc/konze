@@ -66,6 +66,7 @@ konze:
   databaseAdministration:
     access:
       driver: net.masterstudios.konze.driver.postgres.PostgresDatabaseDriver
+      schemaDiscovery: net.masterstudios.konze.driver.postgres.PostgresSchemaDiscovery
       jdbcUrl: jdbc:postgresql://localhost:5432/konze_db
       username: konze_user
       password: konze_password

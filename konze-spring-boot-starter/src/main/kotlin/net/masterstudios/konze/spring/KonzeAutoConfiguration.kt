@@ -48,4 +48,9 @@ public open class KonzeAutoConfiguration {
         return routing
     }
 
+    @Bean
+    fun schemaDiscoveryController(engine: Engine): SchemaDiscoveryController {
+        return SchemaDiscoveryController(engine)
+    }
+
 }

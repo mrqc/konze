@@ -58,8 +58,7 @@ Example config yaml file:
       schemaDiscoveryEndpoint:
         enabled: true
         endpoint: /schema-discovery
-        authentication: true
-        rateLimiting: 100 requests per minute
+        rateLimiting: 100
       pool:
         dataSourceClassName: com.zaxxer.hikari.HikariDataSource
         jdbcUrl: jdbc:postgresql://localhost:5432/konze_db

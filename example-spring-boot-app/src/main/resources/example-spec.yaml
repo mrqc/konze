@@ -31,8 +31,7 @@ konze:
       schemaDiscoveryEndpoint:
         enabled: true
         endpoint: /schema-discovery
-        authentication: true
-        rateLimiting: 100 requests per minute
+        rateLimiting: 100
       pool:
         jdbcUrl: jdbc:postgresql://localhost:5432/konze_db
         username: full-access-user

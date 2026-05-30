@@ -68,6 +68,12 @@ public class HikariPoolsManager(
             HikariPoolWrapper(hikariConfig, profileConfig, poolConfig, schemaDiscovery)
         }
     }
+    
+    public fun getPoolBySchemaDiscoveryPath(path: String): HikariPoolWrapper? {
+        return pools.values.find { poolWrapper -> 
+            poolWrapper.profileConfiguration.schemaDiscoveryEndpoint.endpoint == path
+        }
+    }
 
     public fun getPool(profileName: String): HikariPoolWrapper? {
         return pools[profileName]

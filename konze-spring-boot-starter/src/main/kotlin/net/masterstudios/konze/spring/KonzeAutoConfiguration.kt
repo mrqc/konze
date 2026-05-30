@@ -10,6 +10,8 @@ import org.springframework.context.annotation.Primary
 import javax.sql.DataSource
 import kotlin.collections.flatten
 
+import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping
+
 @ConfigurationProperties(prefix = "konze")
 public data class KonzeProperties(
     public var configFiles: List<String> = emptyList()
@@ -49,8 +51,16 @@ public open class KonzeAutoConfiguration {
     }
 
     @Bean
-    fun schemaDiscoveryController(engine: Engine): SchemaDiscoveryController {
-        return SchemaDiscoveryController(engine)
+    fun schemaDiscoveryController(engine: Engine, handlerMapping: RequestMappingHandlerMapping): SchemaDiscoveryController {
+        val controller = SchemaDiscoveryController(engine, handlerMapping)
+        for (context in engine.databaseContexts.values) {
+            for (pool in context.poolManager.getAllPools().values) {
+                if (pool.profileConfiguration.schemaDiscoveryEndpoint.enabled && pool.schemaDiscovery != null) {
+                    controller.registerEndpoint(pool.profileConfiguration.schemaDiscoveryEndpoint.endpoint)
+                }
+            }
+        }
+        return controller
     }
 
 }

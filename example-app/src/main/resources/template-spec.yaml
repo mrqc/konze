@@ -24,7 +24,7 @@ konze:
           executionLogging: true
           executionLog: ./logs/execution.log
         audit:
-          log: ./logs/audit.log
+          log: ./logs/audit.log #tbi
         monitoring:
           slowQueryThreshold: 500
           slowQueryLogging: true
@@ -32,8 +32,7 @@ konze:
       schemaDiscoveryEndpoint:
         enabled: true
         endpoint: /schema-discovery
-        authentication: true
-        rateLimiting: 100 requests per minute
+        rateLimiting: 100
       pool:
         dataSourceClassName: com.zaxxer.hikari.HikariDataSource
         jdbcUrl: jdbc:postgresql://localhost:5432/konze_db
@@ -62,6 +61,6 @@ konze:
       username: konze_user
       password: konze_password
     schema:
-      updateTrigger: true
-      deleteTrigger: true
-      insertTrigger: true
+      updateTrigger: true #tbi
+      deleteTrigger: true #tbi
+      insertTrigger: true #tbi

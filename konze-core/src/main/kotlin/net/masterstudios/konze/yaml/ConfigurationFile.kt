@@ -75,8 +75,7 @@ public data class MonitoringConfiguration(
 public data class SchemaDiscoveryEndpointConfiguration(
     public val enabled: Boolean = true,
     public val endpoint: String = "/schema-discovery",
-    public val authentication: Boolean = true,
-    public val rateLimiting: String = "100 requests per minute"
+    public val rateLimiting: Long = 100
 )
 
 public open class PoolConfiguration(

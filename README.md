@@ -5,7 +5,7 @@
 
 ## tl;dr
 Text-to-SQL database connection management framework for agents, with 
-* recovery of data
+* historization of data / recovery of data
 * permission management
 * connection timeout management
 * connection profiles management
@@ -20,6 +20,7 @@ A Text-to-SQL database connection management framework for agents. When you want
 * a connection follows specific timeout to prevent agents from keeping connections open indefinitely and overloading the database
 * you can define profiles for connections which can be reused across agents, so you don't have to define the same connection parameters for each agent
 * queries are logged to agent log files, so you can see what queries agents are running against the database (Konze logs queries to a file)
+* data is historized, so you can recover data if an agent accidentally deletes or updates data that it shouldn't have.
 
 Example config yaml file:
 ```yaml

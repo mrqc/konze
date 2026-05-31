@@ -23,4 +23,5 @@ public abstract class DatabaseDriver(
     public abstract fun grantPermissionsOnUser(username: String, schema: String, permissions: List<Permission>)
     
     public abstract fun setQueryTimeoutForUser(username: String, executionTimeout: String)
+    public abstract fun prepareHistorization()
 }

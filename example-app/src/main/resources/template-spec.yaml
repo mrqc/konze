@@ -59,6 +59,6 @@ konze:
       username: konze_user
       password: konze_password
     schema:
-      updateTrigger: true #tbi
-      deleteTrigger: true #tbi
-      insertTrigger: true #tbi
+      updateTrigger: true
+      deleteTrigger: true
+      insertTrigger: true

@@ -112,4 +112,47 @@ public class PostgresDatabaseDriver(
             statement.execute("alter user \"$username\" set statement_timeout = '" + executionTimeout + "'");
         }
     }
+    
+    override fun prepareHistorization() {
+        connection.createStatement().use { statement ->
+            statement.execute("""
+                create table if not exists data_history (
+                    id bigserial primary key,
+                    table_name text not null,
+                    operation text not null check (operation in ('INSERT', 'UPDATE', 'DELETE', 'insert', 'update', 'delete')),
+                    old_data jsonb,
+                    new_data jsonb,
+                    changed_by text default current_user,
+                    changed_at timestamptz default current_timestamp
+                );
+            """.trimIndent())
+
+            statement.execute("""
+                do $$
+                begin
+                    if not exists (select 1 from pg_proc where proname = 'log_table_history') then
+                        create or replace function log_table_history()
+                        returns trigger as ${'$'}body${'$'}
+                        begin
+                            if (tg_op = 'DELETE') then
+                                insert into data_history (table_name, operation, old_data, new_data)
+                                values (tg_table_name, tg_op, to_jsonb(old), null);
+                                return old;
+                            elsif (tg_op = 'UPDATE') then
+                                insert into data_history (table_name, operation, old_data, new_data)
+                                values (tg_table_name, tg_op, to_jsonb(old), to_jsonb(new));
+                                return new;
+                            elsif (tg_op = 'INSERT') then
+                                insert into data_history (table_name, operation, old_data, new_data)
+                                values (tg_table_name, tg_op, null, to_jsonb(new));
+                                return new;
+                            end if;
+                            return null;
+                        end;
+                        ${'$'}body${'$'} language plpgsql;
+                    end if;
+                end $$;
+            """.trimIndent())
+        }
+    }
 }

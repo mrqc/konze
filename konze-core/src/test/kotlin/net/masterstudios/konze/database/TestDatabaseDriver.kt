@@ -19,4 +19,5 @@ public class TestDatabaseDriver(
     override fun setPasswordToUser(username: String, password: String) {}
     override fun grantPermissionsOnUser(username: String, schema: String, permissions: List<Permission>) {}
     override fun setQueryTimeoutForUser(username: String, executionTimeout: String) {}
+    override fun prepareHistorization() {}
 }

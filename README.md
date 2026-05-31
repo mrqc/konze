@@ -9,7 +9,6 @@ Text-to-SQL database connection management framework for agents, with
 * permission management
 * connection timeout management
 * connection profiles management
-* data change auditing
 * prompt and query logging.
 
 First release of Konze supports PostgreSQL databases, but support for MySQL and other databases is planned for the future.
@@ -20,7 +19,6 @@ A Text-to-SQL database connection management framework for agents. When you want
 * a connection for an agent gets only those permissions that are necessary for the agent to do its job
 * a connection follows specific timeout to prevent agents from keeping connections open indefinitely and overloading the database
 * you can define profiles for connections which can be reused across agents, so you don't have to define the same connection parameters for each agent
-* data changes are audited, so you can track which agent made which changes to the database (Konze adds triggers to the database to log changes)
 * queries are logged to agent log files, so you can see what queries agents are running against the database (Konze logs queries to a file)
 
 Example config yaml file:
@@ -49,8 +47,6 @@ Example config yaml file:
           executionTimeout: 60s
           executionLogging: true
           executionLog: ./logs/execution.log
-        audit:
-          log: ./logs/audit.log
         monitoring:
           slowQueryThreshold: 500
           slowQueryLogging: true

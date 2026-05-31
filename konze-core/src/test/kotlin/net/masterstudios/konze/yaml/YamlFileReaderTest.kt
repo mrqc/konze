@@ -79,8 +79,6 @@ class YamlFileReaderTest {
         assertEquals("60s", profile.configuration.query.executionTimeout)
         assertTrue(profile.configuration.query.executionLogging)
         
-        assertEquals("./logs/audit.log", profile.configuration.audit.log)
-        
         assertEquals("500", profile.configuration.monitoring.slowQueryThreshold)
         
         assertTrue(profile.schemaDiscoveryEndpoint.enabled)

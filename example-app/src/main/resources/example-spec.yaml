@@ -22,8 +22,6 @@ konze:
           executionTimeout: 60s
           executionLogging: true
           executionLog: ./logs/execution.log
-        audit:
-          log: ./logs/audit.log
         monitoring:
           slowQueryThreshold: 500
           slowQueryLogging: true

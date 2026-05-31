@@ -52,7 +52,6 @@ public enum class Permission {
 
 public data class ProfileSpecificConfiguration(
     public val query: QueryConfiguration = QueryConfiguration(),
-    public val audit: AuditConfiguration = AuditConfiguration(),
     public val monitoring: MonitoringConfiguration = MonitoringConfiguration()
 )
 
@@ -60,10 +59,6 @@ public data class QueryConfiguration(
     public val executionTimeout: String = "60s",
     public val executionLogging: Boolean = true,
     public val executionLog: String = "./logs/execution.log"
-)
-
-public data class AuditConfiguration(
-    public val log: String = "./logs/audit.log"
 )
 
 public data class MonitoringConfiguration(

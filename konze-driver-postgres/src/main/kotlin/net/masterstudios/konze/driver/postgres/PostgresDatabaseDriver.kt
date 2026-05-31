@@ -162,6 +162,7 @@ public class PostgresDatabaseDriver(
 
             if (operations.isNotEmpty()) {
                 val operationsSql = operations.joinToString(" or ")
+                val requiredOps = operations.map { it.uppercase() }.toSet()
                 
                 connection.createStatement().use { tableStatement ->
                     val tablesQuery = """
@@ -178,12 +179,35 @@ public class PostgresDatabaseDriver(
                             val tableSchema = resultSet.getString("table_schema")
                             val triggerName = "${tableName}_history_trigger"
                             
-                            statement.execute("drop trigger if exists \"$triggerName\" on \"$tableSchema\".\"$tableName\"")
-                            statement.execute("""
-                                create trigger "$triggerName"
-                                after $operationsSql on "$tableSchema"."$tableName"
-                                for each row execute function log_table_history()
-                            """.trimIndent())
+                            // Check existing operations for this trigger
+                            val existingOps = mutableSetOf<String>()
+                            val checkQuery = """
+                                select event_manipulation 
+                                from information_schema.triggers 
+                                where trigger_name = ? 
+                                  and event_object_table = ? 
+                                  and event_object_schema = ?
+                            """.trimIndent()
+                            
+                            connection.prepareStatement(checkQuery).use { checkStmt ->
+                                checkStmt.setString(1, triggerName)
+                                checkStmt.setString(2, tableName)
+                                checkStmt.setString(3, tableSchema)
+                                checkStmt.executeQuery().use { rs ->
+                                    while (rs.next()) {
+                                        existingOps.add(rs.getString("event_manipulation"))
+                                    }
+                                }
+                            }
+
+                            if (existingOps != requiredOps) {
+                                statement.execute("drop trigger if exists \"$triggerName\" on \"$tableSchema\".\"$tableName\"")
+                                statement.execute("""
+                                    create trigger "$triggerName"
+                                    after $operationsSql on "$tableSchema"."$tableName"
+                                    for each row execute function log_table_history()
+                                """.trimIndent())
+                            }
                         }
                     }
                 }

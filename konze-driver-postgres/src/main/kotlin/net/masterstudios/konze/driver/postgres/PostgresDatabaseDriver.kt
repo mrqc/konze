@@ -153,6 +153,41 @@ public class PostgresDatabaseDriver(
                     end if;
                 end $$;
             """.trimIndent())
+
+            val schemaConfig = configuration.konze.databaseAdministration?.schema
+            val operations = mutableListOf<String>()
+            if (schemaConfig?.insertTrigger != false) operations.add("insert")
+            if (schemaConfig?.updateTrigger != false) operations.add("update")
+            if (schemaConfig?.deleteTrigger != false) operations.add("delete")
+
+            if (operations.isNotEmpty()) {
+                val operationsSql = operations.joinToString(" or ")
+                
+                connection.createStatement().use { tableStatement ->
+                    val tablesQuery = """
+                        select table_name, table_schema 
+                            from information_schema.tables 
+                            where table_type = 'BASE TABLE' 
+                                and table_schema not in ('information_schema', 'pg_catalog')
+                                and table_name != 'data_history'
+                    """.trimIndent()
+                    
+                    tableStatement.executeQuery(tablesQuery).use { resultSet ->
+                        while (resultSet.next()) {
+                            val tableName = resultSet.getString("table_name")
+                            val tableSchema = resultSet.getString("table_schema")
+                            val triggerName = "${tableName}_history_trigger"
+                            
+                            statement.execute("drop trigger if exists \"$triggerName\" on \"$tableSchema\".\"$tableName\"")
+                            statement.execute("""
+                                create trigger "$triggerName"
+                                after $operationsSql on "$tableSchema"."$tableName"
+                                for each row execute function log_table_history()
+                            """.trimIndent())
+                        }
+                    }
+                }
+            }
         }
     }
 }

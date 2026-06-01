@@ -1,14 +1,28 @@
 package net.masterstudios.konze.examplespringboot
 
+import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.util.UUID
 
 @Service
-class TestService(private val testRepository: TestRepository) {
+class TestService(
+    private val testRepository: TestRepository,
+    private val jdbcTemplate: JdbcTemplate
+) {
+
+    @Transactional
+    fun createTestEntity2() {
+        jdbcTemplate.execute("create table if not exists test_entity2 (id uuid primary key, name varchar(255))")
+    }
     
     @Transactional
-    fun fullAccessProfile() {
+    fun dropTestEntity2() {
+        jdbcTemplate.execute("drop table test_entity2")
+    }
+    
+    @Transactional
+    fun findAllAndDeleteAll() {
         // Do a read
         testRepository.findAll()
         // Do a delete
@@ -18,9 +32,9 @@ class TestService(private val testRepository: TestRepository) {
     @Transactional
     fun doASave() {
         // Generate a test entity instance
-        val a = TestEntity(id = UUID.randomUUID(), name = "Some Name")
+        val testEntity = TestEntity(id = UUID.randomUUID(), name = "Some Name")
         // Store the test entity instance, which works now
-        testRepository.save(a)
+        testRepository.save(testEntity)
     }
 
     @Transactional
@@ -34,8 +48,8 @@ class TestService(private val testRepository: TestRepository) {
         // Test the read only profile to access the database
         testRepository.findAll()
         // Generate a test entity instance
-        val a = TestEntity(id = UUID.randomUUID(), name = "Some Name")
+        val testEntity = TestEntity(id = UUID.randomUUID(), name = "Some Name")
         // Store the test entity instance, which works now
-        testRepository.save(a)
+        testRepository.save(testEntity)
     }
 }

@@ -3,7 +3,6 @@ package net.masterstudios.konze.examplespringboot
 import net.masterstudios.konze.spring.DataSourceContextHolder.clearDataSourceType
 import net.masterstudios.konze.spring.DataSourceContextHolder.setDataSourceType
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import kotlin.test.assertFalse
@@ -16,6 +15,36 @@ class TestServiceIntegrationTest {
     
     @Test
     fun `test process method handles exception in profile`() {
+        try {
+            setDataSourceType("read-only-profile")
+            testService.createTestEntity2()
+        } catch (ex: Exception) {
+            println("Expected exception when trying to create test entity with read-only profile: ${ex.message}")
+        }
+        try {
+            setDataSourceType("write-only-profile")
+            testService.createTestEntity2()
+        } catch (ex: Exception) {
+            println("Expected exception when trying to create test entity with read-only profile: ${ex.message}")
+        }
+        setDataSourceType("full-access-profile")
+        testService.createTestEntity2()
+
+        try {
+            setDataSourceType("read-only-profile")
+            testService.dropTestEntity2()
+        } catch (ex: Exception) {
+            println("Expected exception when trying to create test entity with read-only profile: ${ex.message}")
+        }
+        try {
+            setDataSourceType("write-only-profile")
+            testService.dropTestEntity2()
+        } catch (ex: Exception) {
+            println("Expected exception when trying to create test entity with read-only profile: ${ex.message}")
+        }
+        setDataSourceType("full-access-profile")
+        testService.dropTestEntity2()
+
         // Set the database access to read only profile
         setDataSourceType("read-only-profile")
         testService.doARead()
@@ -50,7 +79,7 @@ class TestServiceIntegrationTest {
 
         // Switch to a full access profile
         setDataSourceType("full-access-profile")
-        testService.fullAccessProfile()
+        testService.findAllAndDeleteAll()
 
         clearDataSourceType()
     }

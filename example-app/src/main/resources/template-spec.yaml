@@ -56,7 +56,7 @@ konze:
       driver: net.masterstudios.konze.driver.postgres.PostgresDatabaseDriver
       schemaDiscovery: net.masterstudios.konze.discovery.postgres.PostgresSchemaDiscovery
       jdbcUrl: jdbc:postgresql://localhost:5432/konze_db
-      username: konze_user
+      username: konze_admin
       password: konze_password
     schema:
       updateTrigger: true

@@ -16,6 +16,11 @@ public class PostgresDatabaseDriver(
         }
     }
 
+    override fun getConnectionInitializationQuery(): String {
+        return "set role konze_users;"
+    }
+
+
     override fun createRole(roleName: String) {
         require(roleName.isNotBlank()) { "roleName must not be null or empty" }
         val sql = "create role \"$roleName\" nologin;"

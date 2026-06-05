@@ -1,26 +1,40 @@
 # Konze
 
-| :exclamation:  Under Development as per 27th may 2026   |
-|----------------------------------------------|
-
 ## tl;dr
-Text-to-SQL database connection management framework for agents, with 
+Providing controllable database connections to support: 
 * historization of data / recovery of data
 * permission management
 * connection timeout management
 * connection profiles management
 * prompt and query logging.
 
+for your java/kotline application
+
+Features:
+
+| Status      | Feature                                                                  |
+|-------------|--------------------------------------------------------------------------|
+| in progress | built-in Text-to-SQL database connection management framework for agents |
+| in progress | support for PostgreSQL databases                                           |
+| planned     | support for MySQL and other databases                                           |
+
+
+
 First release of Konze supports PostgreSQL databases, but support for MySQL and other databases is planned for the future.
 
 ## What is Konze?
 
-A Text-to-SQL database connection management framework for agents. When you want to provide agents access to a database, Konze ensures that
-* a connection for an agent gets only those permissions that are necessary for the agent to do its job
-* a connection follows specific timeout to prevent agents from keeping connections open indefinitely and overloading the database
-* you can define profiles for connections which can be reused across agents, so you don't have to define the same connection parameters for each agent
-* queries are logged to agent log files, so you can see what queries agents are running against the database (Konze logs queries to a file)
-* data is historized, so you can recover data if an agent accidentally deletes or updates data that it shouldn't have.
+Konze is a database connection management framework built on Hikari. It provides the ability to manage different pools
+for your java/kotline applications. As example it enables to maintain AI agents in a controllable way, ensuring that 
+agents have the necessary permissions to do their job, while also preventing them from keeping connections open indefinitely 
+and overloading the database. Konze also provides features such as connection profiles, query logging, and data historization 
+to help you manage your database connections effectively. It also comes with a Text-to-SQL database access. 
+When you want to provide access to a database, Konze ensures that
+* a connection gets only those permissions that are necessary for the agent to do its job
+* a connection follows specific timeout to prevent it from keeping connections open indefinitely and overloading the database
+* you can define profiles for connections which can be reused, so you don't have to define the same connection parameters for each usage
+* queries are logged to log files, so you can see which queries are running against the database (Konze logs queries to a file)
+* data is historized, so you can recover data if it gets accidentally deleted or updated data that it shouldn't have.
 
 Example config yaml file:
 ```yaml

@@ -20,4 +20,6 @@ public class TestDatabaseDriver(
     override fun grantPermissionsOnUser(username: String, schema: String, permissions: List<Permission>) {}
     override fun setQueryTimeoutForUser(username: String, executionTimeout: String) {}
     override fun prepareHistorization() {}
+    override fun prepareOwnershipTransfer() {}
+    override fun getConnectionInitializationQuery(schema: String): String = "select 1"
 }

@@ -18,6 +18,10 @@ public class PostgresDatabaseDriver(
         prepareHistorization()
     }
 
+    override fun getConnectionInitializationQuery(schema: String): String {
+        return "set search_path to \"$schema\", public;"
+    }
+
     override fun createRole(roleName: String) {
         require(roleName.isNotBlank()) { "roleName must not be null or empty" }
         val sql = "create role \"$roleName\" nologin;"
@@ -75,8 +79,9 @@ public class PostgresDatabaseDriver(
 
             if (permissions.isEmpty()) return
 
-            // 1. Grant usage on schema
+            // 1. Grant usage on schema and set search path
             statement.execute("grant usage on schema \"$schema\" to \"$username\"")
+            statement.execute("alter user \"$username\" set search_path to \"$schema\", public")
 
             val dbName = connection.catalog
 
@@ -166,6 +171,11 @@ public class PostgresDatabaseDriver(
                         -- loop through all objects created or altered in this transaction
                         for obj in select * from pg_event_trigger_ddl_commands()
                         loop
+                            -- avoid infinite recursion: do not reassign the trigger function itself
+                            if obj.object_identity = 'public.trg_reassign_all_owners()' then
+                                continue;
+                            end if;
+
                             -- filter for top-level objects that support explicit ownership
                             if obj.object_type in (
                                 'table', 'view', 'materialized view', 
@@ -173,12 +183,18 @@ public class PostgresDatabaseDriver(
                                 'type', 'domain'
                             ) then
                                 
-                                -- dynamically execute: alter <type> <identity> owner to "konze-users"
-                                execute format(
-                                    'alter %s %s owner to "konze-users";', 
-                                    obj.object_type, 
-                                    obj.object_identity
-                                );
+                                begin
+                                    -- dynamically execute: alter <type> <identity> owner to "konze-users"
+                                    execute format(
+                                        'alter %s %s owner to "konze-users";', 
+                                        obj.object_type, 
+                                        obj.object_identity
+                                    );
+                                exception when others then
+                                    -- ignore errors for objects that cannot have their owner changed
+                                    -- (e.g. sequences linked to tables)
+                                    null;
+                                end;
                                 
                             end if;
                         end loop;

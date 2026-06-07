@@ -45,7 +45,7 @@ public class HikariPoolsManager(
                 maximumPoolSize = poolConfig.maximumPoolSize
                 initializationFailTimeout = poolConfig.initializationFailTimeout
                 isReadOnly = poolConfig.readOnly
-                connectionInitSql = poolConfig.connectionInitSql ?: databaseAdministrationManager.driver.getConnectionInitializationQuery()
+                connectionInitSql = poolConfig.connectionInitSql ?: databaseAdministrationManager.driver.getConnectionInitializationQuery(schema)
                 transactionIsolation = poolConfig.transactionIsolation
                 validationTimeout = poolConfig.validationTimeout
                 leakDetectionThreshold = poolConfig.leakDetectionThreshold

@@ -25,25 +25,10 @@ class TestServiceIntegrationTest {
             setDataSourceType("write-only-profile")
             testService.createTestEntity2()
         } catch (ex: Exception) {
-            println("Expected exception when trying to create test entity with read-only profile: ${ex.message}")
+            println("Expected exception when trying to create test entity with write-only profile: ${ex.message}")
         }
         setDataSourceType("full-access-profile")
         testService.createTestEntity2()
-
-        try {
-            setDataSourceType("read-only-profile")
-            testService.dropTestEntity2()
-        } catch (ex: Exception) {
-            println("Expected exception when trying to create test entity with read-only profile: ${ex.message}")
-        }
-        try {
-            setDataSourceType("write-only-profile")
-            testService.dropTestEntity2()
-        } catch (ex: Exception) {
-            println("Expected exception when trying to create test entity with read-only profile: ${ex.message}")
-        }
-        setDataSourceType("full-access-profile")
-        testService.dropTestEntity2()
 
         // Set the database access to read only profile
         setDataSourceType("read-only-profile")
@@ -80,6 +65,22 @@ class TestServiceIntegrationTest {
         // Switch to a full access profile
         setDataSourceType("full-access-profile")
         testService.findAllAndDeleteAll()
+        
+        // CLEANUP
+        try {
+            setDataSourceType("read-only-profile")
+            testService.dropTestEntity2()
+        } catch (ex: Exception) {
+            println("Expected exception when trying to create test entity with read-only profile: ${ex.message}")
+        }
+        try {
+            setDataSourceType("write-only-profile")
+            testService.dropTestEntity2()
+        } catch (ex: Exception) {
+            println("Expected exception when trying to create test entity with read-only profile: ${ex.message}")
+        }
+        setDataSourceType("full-access-profile")
+        testService.dropTestEntity2()
 
         clearDataSourceType()
     }

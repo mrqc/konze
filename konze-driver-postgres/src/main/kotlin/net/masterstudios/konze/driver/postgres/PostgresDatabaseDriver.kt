@@ -14,12 +14,9 @@ public class PostgresDatabaseDriver(
         if (!isUserExisting("konze-users")) {
             createRole("konze-users")
         }
+        prepareOwnershipTransfer()
+        prepareHistorization()
     }
-
-    override fun getConnectionInitializationQuery(): String {
-        return "set role konze_users;"
-    }
-
 
     override fun createRole(roleName: String) {
         require(roleName.isNotBlank()) { "roleName must not be null or empty" }
@@ -49,8 +46,16 @@ public class PostgresDatabaseDriver(
         require(username.isNotBlank()) { "username must not be null or empty" }
         require(schema.isNotBlank()) { "schema must not be null or empty" }
         
-        val sql = "revoke all privileges on all tables in schema \"$schema\" from \"$username\""
-        connection.createStatement().use { it.execute(sql) }
+        val dbName = connection.catalog
+        connection.createStatement().use { statement ->
+            statement.execute("revoke all privileges on all tables in schema \"$schema\" from \"$username\"")
+            statement.execute("revoke all privileges on all sequences in schema \"$schema\" from \"$username\"")
+            statement.execute("revoke all privileges on all functions in schema \"$schema\" from \"$username\"")
+            statement.execute("revoke all privileges on schema \"$schema\" from \"$username\"")
+            if (dbName != null) {
+                statement.execute("revoke all privileges on database \"$dbName\" from \"$username\"")
+            }
+        }
     }
 
     override fun setPasswordToUser(username: String, password: String) {
@@ -73,16 +78,26 @@ public class PostgresDatabaseDriver(
             // 1. Grant usage on schema
             statement.execute("grant usage on schema \"$schema\" to \"$username\"")
 
+            val dbName = connection.catalog
+
             if (permissions.contains(Permission.ALL_PRIVILEGES)) {
                 statement.execute("grant all privileges on all tables in schema \"$schema\" to \"$username\"")
                 statement.execute("grant all privileges on all sequences in schema \"$schema\" to \"$username\"")
+                statement.execute("grant all privileges on all functions in schema \"$schema\" to \"$username\"")
+                statement.execute("grant all privileges on schema \"$schema\" to \"$username\"")
+                if (dbName != null) {
+                    statement.execute("grant all privileges on database \"$dbName\" to \"$username\"")
+                }
                 statement.execute("alter default privileges in schema \"$schema\" grant all privileges on tables to \"$username\"")
+                statement.execute("alter default privileges in schema \"$schema\" grant all privileges on sequences to \"$username\"")
+                statement.execute("alter default privileges in schema \"$schema\" grant all privileges on functions to \"$username\"")
                 statement.execute("alter default privileges for role \"$username\" in schema \"$schema\" grant all on tables to \"konze-users\"")
             } else {
                 // 2. Map to valid table privileges
                 val tablePrivileges = setOf(
                     Permission.SELECT, Permission.INSERT, Permission.UPDATE, 
-                    Permission.DELETE, Permission.TRUNCATE, Permission.REFERENCES, Permission.TRIGGER
+                    Permission.DELETE, Permission.TRUNCATE, Permission.REFERENCES, Permission.TRIGGER,
+                    Permission.MAINTAIN
                 )
                 
                 val privsToGrant = permissions.intersect(tablePrivileges)
@@ -92,8 +107,8 @@ public class PostgresDatabaseDriver(
                     // Grant on current tables
                     statement.execute("grant $privsString on all tables in schema \"$schema\" to \"$username\"")
                     
-                    // Grant on sequences if it's an insert/update
-                    if (permissions.contains(Permission.INSERT) || permissions.contains(Permission.UPDATE)) {
+                    // Grant on sequences if it's an insert/update or explicit usage
+                    if (permissions.contains(Permission.INSERT) || permissions.contains(Permission.UPDATE) || permissions.contains(Permission.USAGE)) {
                         statement.execute("grant usage, select on all sequences in schema \"$schema\" to \"$username\"")
                     }
 
@@ -108,6 +123,25 @@ public class PostgresDatabaseDriver(
                 if (permissions.contains(Permission.CREATE)) {
                     statement.execute("grant create on schema \"$schema\" to \"$username\"")
                 }
+                if (permissions.contains(Permission.USAGE)) {
+                    statement.execute("grant usage on schema \"$schema\" to \"$username\"")
+                }
+
+                // 4. Handle function-level privileges
+                if (permissions.contains(Permission.EXECUTE)) {
+                    statement.execute("grant execute on all functions in schema \"$schema\" to \"$username\"")
+                    statement.execute("alter default privileges in schema \"$schema\" grant execute on functions to \"$username\"")
+                }
+
+                // 5. Handle database-level privileges
+                if (dbName != null) {
+                    if (permissions.contains(Permission.CONNECT)) {
+                        statement.execute("grant connect on database \"$dbName\" to \"$username\"")
+                    }
+                    if (permissions.contains(Permission.TEMPORARY)) {
+                        statement.execute("grant temporary on database \"$dbName\" to \"$username\"")
+                    }
+                }
             }
         }
     }
@@ -115,6 +149,49 @@ public class PostgresDatabaseDriver(
     override fun setQueryTimeoutForUser(username: String, executionTimeout: String) {
         connection.createStatement().use { statement ->
             statement.execute("alter user \"$username\" set statement_timeout = '" + executionTimeout + "'");
+        }
+    }
+    
+    override fun prepareOwnershipTransfer() {
+        connection.createStatement().use { statement ->
+            statement.execute("""
+                create or replace function trg_reassign_all_owners()
+                returns event_trigger as $$
+                declare
+                    obj record;
+                begin
+                    -- only intervene if full-access-user is executing the command
+                    if current_user != 'konze-users' then
+                        
+                        -- loop through all objects created or altered in this transaction
+                        for obj in select * from pg_event_trigger_ddl_commands()
+                        loop
+                            -- filter for top-level objects that support explicit ownership
+                            if obj.object_type in (
+                                'table', 'view', 'materialized view', 
+                                'sequence', 'function', 'procedure', 
+                                'type', 'domain'
+                            ) then
+                                
+                                -- dynamically execute: alter <type> <identity> owner to "konze-users"
+                                execute format(
+                                    'alter %s %s owner to "konze-users";', 
+                                    obj.object_type, 
+                                    obj.object_identity
+                                );
+                                
+                            end if;
+                        end loop;
+                    end if;
+                end;
+                $$ language plpgsql;
+            """.trimIndent())
+            statement.execute("drop event trigger if exists reassign_all_owners_on_ddl")
+            statement.execute("""
+                create event trigger reassign_all_owners_on_ddl
+                on ddl_command_end
+                execute function trg_reassign_all_owners();
+            """.trimIndent())
         }
     }
     

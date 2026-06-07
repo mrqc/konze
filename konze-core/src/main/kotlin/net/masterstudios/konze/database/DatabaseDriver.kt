@@ -25,6 +25,8 @@ public abstract class DatabaseDriver(
     public abstract fun setQueryTimeoutForUser(username: String, executionTimeout: String)
     
     public abstract fun prepareHistorization()
+
+    public abstract fun prepareOwnershipTransfer()
     
     public open fun getConnectionInitializationQuery(): String = "select 1"
 }

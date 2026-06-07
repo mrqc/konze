@@ -9,74 +9,85 @@ group = "net.master-studios"
 version = "0.1.0"
 
 subprojects {
-    group = rootProject.group
-    version = rootProject.version
+    project.group = rootProject.group
+    project.version = rootProject.version
+
     repositories {
         mavenCentral()
     }
 
-    plugins.withType<JavaPlugin> {
-        if (!project.name.contains("example")) {
-            apply(plugin = "maven-publish")
-            apply(plugin = "signing")
+    if (project.name.startsWith("konze")) {
+        apply(plugin = "maven-publish")
+        apply(plugin = "signing")
+        apply(plugin = "java-library")
 
-            configure<JavaPluginExtension> {
-                withSourcesJar()
-                withJavadocJar()
-            }
+        configure<JavaPluginExtension> {
+            withSourcesJar()
+            withJavadocJar()
+        }
 
-            configure<PublishingExtension> {
-                publications {
-                    create<MavenPublication>("mavenJava") {
-                        from(components["java"])
-
-                        groupId = project.group.toString()
-                        version = project.version.toString()
-                        artifactId = if (project.name.startsWith("konze")) project.name else "konze-${project.name}"
-
-                        pom {
-                            name.set(project.name)
-                            description.set("Konze: A robust database connection management framework for Java and Kotlin.")
+        configure<PublishingExtension> {
+            publications {
+                create<MavenPublication>("mavenJava") {
+                    from(components["java"])
+                    groupId = project.group.toString()
+                    artifactId = project.name
+                    version = project.version.toString()
+                    pom {
+                        name.set(project.name)
+                        description.set("Konze: A robust database connection management framework for Java and Kotlin.")
+                        url.set("https://github.com/mrqc/konze")
+                        licenses {
+                            license {
+                                name.set("MIT License")
+                                url.set("https://opensource.org/licenses/MIT")
+                            }
+                        }
+                        developers {
+                            developer {
+                                id.set("mrqc")
+                                name.set("mrqc")
+                                email.set("info@masterstudios.net")
+                            }
+                        }
+                        scm {
+                            connection.set("scm:git:git://github.com/mrqc/konze.git")
+                            developerConnection.set("scm:git:ssh://github.com/mrqc/konze.git")
                             url.set("https://github.com/mrqc/konze")
-                            licenses {
-                                license {
-                                    name.set("MIT License")
-                                    url.set("https://opensource.org/licenses/MIT")
-                                }
-                            }
-                            developers {
-                                developer {
-                                    id.set("mrqc")
-                                    name.set("mrqc")
-                                    email.set("office@masterstudios.net")
-                                }
-                            }
-                            scm {
-                                connection.set("scm:git:git://github.com/mrqc/konze.git")
-                                developerConnection.set("scm:git:ssh://github.com/mrqc/konze.git")
-                                url.set("https://github.com/mrqc/konze")
-                            }
-                        }
-                    }
-                }
-
-                repositories {
-                    maven {
-                        val isSnapshot = project.version.toString().endsWith("SNAPSHOT")
-                        val releasesRepoUrl = uri("https://central.sonatype.com/repository/maven-releases/")
-                        val snapshotsRepoUrl = uri("https://central.sonatype.com/repository/maven-snapshots/")
-                        url = if (isSnapshot) snapshotsRepoUrl else releasesRepoUrl
-                        credentials {
-                            username = project.findProperty("sonatypeUsername")?.toString()
-                            password = project.findProperty("sonatypePassword")?.toString()
                         }
                     }
                 }
             }
-
-            configure<SigningExtension> {
-                sign(extensions.getByType<PublishingExtension>().publications["mavenJava"])
+            
+            repositories {
+                // A local repository that we will use to generate the ZIP bundle
+                maven {
+                    name = "Bundle"
+                    url = uri(rootProject.layout.buildDirectory.dir("bundle"))
+                }
             }
         }
+
+        configure<SigningExtension> {
+            sign(extensions.getByType<PublishingExtension>().publications["mavenJava"])
+        }
     }
+}
+
+// Task to create a deployment bundle for Maven Central Portal
+tasks.register<Zip>("zipBundle") {
+    description = "Creates a ZIP bundle for manual upload to Maven Central Portal"
+    group = "publishing"
+    
+    subprojects.forEach { sub ->
+        if (sub.name.startsWith("konze")) {
+            // This ensures we wait for the subproject to publish to the local bundle folder
+            dependsOn(sub.tasks.matching { it.name == "publishMavenJavaPublicationToBundleRepository" })
+        }
+    }
+    
+    archiveFileName.set("konze-bundle-${project.version}.zip")
+    destinationDirectory.set(layout.buildDirectory.dir("distributions"))
+    
+    from(layout.buildDirectory.dir("bundle"))
 }

@@ -2,8 +2,7 @@ plugins {
     kotlin("jvm") version "2.3.10"
 }
 
-group = "net.masterstudios.konze"
-version = "0.1.0-SNAPSHOT"
+// group and version removed to inherit from root
 
 repositories {
     mavenCentral()

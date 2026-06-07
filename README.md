@@ -115,8 +115,8 @@ Add Konze to your `build.gradle.kts`:
 
 ```kotlin
 dependencies {
-    implementation("net.masterstudios:konze-spring-boot-starter:0.1.0")
-    implementation("net.masterstudios:konze-driver-postgres:0.1.0")
+    implementation("net.master-studios:konze-spring-boot-starter:0.1.0")
+    implementation("net.master-studios:konze-driver-postgres:0.1.0")
 }
 ```
 
@@ -156,15 +156,23 @@ import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.stereotype.Service
 
 @Service
-class AgentService(private val jdbcTemplate: JdbcTemplate) {
+class AgentService(
+    private val jdbcTemplate: JdbcTemplate,
+    private val userRepository: UserRepository // Standard Spring Data Repository
+) {
 
     fun executeAgentTask(query: String) {
         try {
             // Switch to the restricted agent profile
             DataSourceContextHolder.setDataSourceType("read-only-agent")
             
-            // All operations here will use the 'read-only-agent' connection
+            // All operations here will use the 'read-only-agent' connection.
+            // This works for low-level JdbcTemplate:
             jdbcTemplate.execute(query)
+
+            // AND for high-level Spring Data Repositories:
+            val users = userRepository.findAll()
+            
         } finally {
             // Always clear the context after use
             DataSourceContextHolder.clearDataSourceType()

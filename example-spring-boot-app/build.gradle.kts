@@ -5,7 +5,7 @@ plugins {
     id("io.spring.dependency-management") version "1.1.7"
 }
 
-group = "net.masterstudios"
+group = "net.master-studios"
 version = "1.0-SNAPSHOT"
 
 repositories {

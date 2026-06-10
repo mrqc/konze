@@ -13,12 +13,12 @@ class TestService(
 
     @Transactional
     fun createTestEntity2() {
-        jdbcTemplate.execute("create table if not exists test_entity (id uuid primary key, name varchar(255))")
+        jdbcTemplate.execute("create table if not exists test_entity2 (id uuid primary key, name varchar(255))")
     }
 
     @Transactional
     fun dropTestEntity2() {
-        jdbcTemplate.execute("drop table if exists test_entity")
+        jdbcTemplate.execute("drop table if exists test_entity2")
     }
 
     @Transactional

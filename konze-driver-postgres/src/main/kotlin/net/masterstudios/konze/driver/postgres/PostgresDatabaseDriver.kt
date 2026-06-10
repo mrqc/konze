@@ -25,7 +25,14 @@ public class PostgresDatabaseDriver(
     override fun createRole(roleName: String) {
         require(roleName.isNotBlank()) { "roleName must not be null or empty" }
         val sql = "create role \"$roleName\" nologin;"
-        connection.createStatement().use { it.execute(sql) }
+        connection.createStatement().use { statement ->
+            statement.execute(sql)
+            // ensure the role has no default permissions
+            statement.execute("revoke all privileges on all tables in schema public from \"$roleName\"")
+            statement.execute("revoke all privileges on all sequences in schema public from \"$roleName\"")
+            statement.execute("revoke all privileges on all functions in schema public from \"$roleName\"")
+            statement.execute("revoke all privileges on schema public from \"$roleName\"")
+        }
     }
 
     override fun isUserExisting(username: String): Boolean {
@@ -42,7 +49,7 @@ public class PostgresDatabaseDriver(
         require(username.isNotBlank()) { "username must not be null or empty" }
         require(password.isNotBlank()) { "password must not be null or empty" }
         
-        val sql = "create user \"$username\" with password '$password' in role \"konze-users\";"
+        val sql = "create user \"$username\" with password '$password' noinherit;"
         connection.createStatement().use { it.execute(sql) }
     }
 
@@ -59,6 +66,10 @@ public class PostgresDatabaseDriver(
             if (dbName != null) {
                 statement.execute("revoke all privileges on database \"$dbName\" from \"$username\"")
             }
+            // also remove from shared role
+            try {
+                statement.execute("revoke \"konze-users\" from \"$username\"")
+            } catch (e: Exception) {}
         }
     }
 
@@ -66,7 +77,7 @@ public class PostgresDatabaseDriver(
         require(username.isNotBlank()) { "username must not be null or empty" }
         require(password.isNotBlank()) { "password must not be null or empty" }
         
-        val sql = "alter user \"$username\" with password '$password';"
+        val sql = "alter user \"$username\" with password '$password' noinherit;"
         connection.createStatement().use { it.execute(sql) }
     }
 
@@ -74,8 +85,20 @@ public class PostgresDatabaseDriver(
         require(username.isNotBlank()) { "username must not be null or empty" }
         
         connection.createStatement().use { statement ->
-            // 0. Ensure user is part of the shared role
-            statement.execute("grant \"konze-users\" to \"$username\"")
+            // CLEAN SLATE
+            val dbName = connection.catalog
+            statement.execute("revoke all privileges on all tables in schema \"$schema\" from \"$username\"")
+            statement.execute("revoke all privileges on all sequences in schema \"$schema\" from \"$username\"")
+            statement.execute("revoke all privileges on all functions in schema \"$schema\" from \"$username\"")
+            statement.execute("revoke all privileges on schema \"$schema\" from \"$username\"")
+            if (dbName != null) {
+                statement.execute("revoke all privileges on database \"$dbName\" from \"$username\"")
+            }
+            try {
+                statement.execute("revoke \"konze-users\" from \"$username\"")
+            } catch (e: Exception) {}
+
+            statement.execute("revoke all on schema \"$schema\" from public")
 
             if (permissions.isEmpty()) return
 
@@ -83,7 +106,10 @@ public class PostgresDatabaseDriver(
             statement.execute("grant usage on schema \"$schema\" to \"$username\"")
             statement.execute("alter user \"$username\" set search_path to \"$schema\", public")
 
-            val dbName = connection.catalog
+            // For full access users, we enable inheritance so they can manage objects (DROP/ALTER)
+            statement.execute("alter user \"$username\" inherit")
+            // User must always be member of konze-users for the event trigger to work correctly (owner management)
+            statement.execute("grant \"konze-users\" to \"$username\"")
 
             if (permissions.contains(Permission.ALL_PRIVILEGES)) {
                 statement.execute("grant all privileges on all tables in schema \"$schema\" to \"$username\"")
@@ -96,7 +122,6 @@ public class PostgresDatabaseDriver(
                 statement.execute("alter default privileges in schema \"$schema\" grant all privileges on tables to \"$username\"")
                 statement.execute("alter default privileges in schema \"$schema\" grant all privileges on sequences to \"$username\"")
                 statement.execute("alter default privileges in schema \"$schema\" grant all privileges on functions to \"$username\"")
-                statement.execute("alter default privileges for role \"$username\" in schema \"$schema\" grant all on tables to \"konze-users\"")
             } else {
                 // 2. Map to valid table privileges
                 val tablePrivileges = setOf(
@@ -112,19 +137,23 @@ public class PostgresDatabaseDriver(
                     // Grant on current tables
                     statement.execute("grant $privsString on all tables in schema \"$schema\" to \"$username\"")
                     
-                    // Grant on sequences if it's an insert/update or explicit usage
-                    if (permissions.contains(Permission.INSERT) || permissions.contains(Permission.UPDATE) || permissions.contains(Permission.USAGE)) {
-                        statement.execute("grant usage, select on all sequences in schema \"$schema\" to \"$username\"")
-                    }
-
                     // Grant on future tables
                     statement.execute("alter default privileges in schema \"$schema\" grant $privsString on tables to \"$username\"")
-                    
-                    // Transfer ownership concept: Ensure 'konze-users' can manage objects
-                    statement.execute("alter default privileges for role \"$username\" in schema \"$schema\" grant all on tables to \"konze-users\"")
                 }
 
-                // 3. Handle schema-level privileges
+                // 3. Handle sequences explicitly
+                val sequencePrivileges = mutableListOf<String>()
+                if (permissions.contains(Permission.SELECT)) sequencePrivileges.add("select")
+                if (permissions.contains(Permission.USAGE) || permissions.contains(Permission.INSERT) || permissions.contains(Permission.UPDATE)) sequencePrivileges.add("usage")
+                if (permissions.contains(Permission.UPDATE)) sequencePrivileges.add("update")
+
+                if (sequencePrivileges.isNotEmpty()) {
+                    val seqPrivsString = sequencePrivileges.distinct().joinToString(", ")
+                    statement.execute("grant $seqPrivsString on all sequences in schema \"$schema\" to \"$username\"")
+                    statement.execute("alter default privileges in schema \"$schema\" grant $seqPrivsString on sequences to \"$username\"")
+                }
+
+                // 4. Handle schema-level privileges
                 if (permissions.contains(Permission.CREATE)) {
                     statement.execute("grant create on schema \"$schema\" to \"$username\"")
                 }
@@ -132,13 +161,13 @@ public class PostgresDatabaseDriver(
                     statement.execute("grant usage on schema \"$schema\" to \"$username\"")
                 }
 
-                // 4. Handle function-level privileges
+                // 5. Handle function-level privileges
                 if (permissions.contains(Permission.EXECUTE)) {
                     statement.execute("grant execute on all functions in schema \"$schema\" to \"$username\"")
                     statement.execute("alter default privileges in schema \"$schema\" grant execute on functions to \"$username\"")
                 }
 
-                // 5. Handle database-level privileges
+                // 6. Handle database-level privileges
                 if (dbName != null) {
                     if (permissions.contains(Permission.CONNECT)) {
                         statement.execute("grant connect on database \"$dbName\" to \"$username\"")
@@ -165,42 +194,37 @@ public class PostgresDatabaseDriver(
                 declare
                     obj record;
                 begin
-                    -- only intervene if full-access-user is executing the command
-                    if current_user != 'konze-users' then
-                        
-                        -- loop through all objects created or altered in this transaction
-                        for obj in select * from pg_event_trigger_ddl_commands()
-                        loop
-                            -- avoid infinite recursion: do not reassign the trigger function itself
-                            if obj.object_identity = 'public.trg_reassign_all_owners()' then
-                                continue;
-                            end if;
+                    -- loop through all objects created or altered in this transaction
+                    for obj in select * from pg_event_trigger_ddl_commands()
+                    loop
+                        -- avoid infinite recursion
+                        if obj.object_identity = 'public.trg_reassign_all_owners()' then
+                            continue;
+                        end if;
 
-                            -- filter for top-level objects that support explicit ownership
-                            if obj.object_type in (
-                                'table', 'view', 'materialized view', 
-                                'sequence', 'function', 'procedure', 
-                                'type', 'domain'
-                            ) then
-                                
-                                begin
-                                    -- dynamically execute: alter <type> <identity> owner to "konze-users"
-                                    execute format(
-                                        'alter %s %s owner to "konze-users";', 
-                                        obj.object_type, 
-                                        obj.object_identity
-                                    );
-                                exception when others then
-                                    -- ignore errors for objects that cannot have their owner changed
-                                    -- (e.g. sequences linked to tables)
-                                    null;
-                                end;
-                                
-                            end if;
-                        end loop;
-                    end if;
+                        -- filter for top-level objects
+                        if obj.object_type in (
+                            'table', 'view', 'materialized view', 
+                            'sequence', 'function', 'procedure', 
+                            'type', 'domain'
+                        ) then
+                            
+                            begin
+                                -- dynamically execute: alter <type> <identity> owner to "konze-users"
+                                execute format(
+                                    'alter %s %s owner to "konze-users";', 
+                                    obj.object_type, 
+                                    obj.object_identity
+                                );
+                            exception when others then
+                                -- ignore errors for objects that cannot have their owner changed
+                                null;
+                            end;
+                            
+                        end if;
+                    end loop;
                 end;
-                $$ language plpgsql;
+                $$ language plpgsql security definer;
             """.trimIndent())
             statement.execute("drop event trigger if exists reassign_all_owners_on_ddl")
             statement.execute("""
@@ -224,6 +248,10 @@ public class PostgresDatabaseDriver(
                     changed_at timestamptz default current_timestamp
                 );
             """.trimIndent())
+            
+            // grant access to history table to the shared role
+            statement.execute("grant all privileges on table data_history to \"konze-users\"")
+            statement.execute("grant usage, select on sequence data_history_id_seq to \"konze-users\"")
 
             statement.execute("""
                 do $$

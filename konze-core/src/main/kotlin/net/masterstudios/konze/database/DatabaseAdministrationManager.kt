@@ -41,11 +41,11 @@ public class DatabaseAdministrationManager(private val configuration: Configurat
 
     public fun ensureUserExistenceAndPermissions(username: String, password: String, schema: String, permissions: List<Permission>, configuration: ProfileSpecificConfiguration) {
         if (driver.isUserExisting(username)) {
-            driver.revokeAllPermissionsOnUser(username, schema)
             driver.setPasswordToUser(username, password)
         } else {
             driver.createUser(username, password)
         }
+        driver.revokeAllPermissionsOnUser(username, schema)
         driver.grantPermissionsOnUser(username, schema, permissions)
         driver.setQueryTimeoutForUser(username, configuration.query.executionTimeout)
     }

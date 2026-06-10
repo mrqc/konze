@@ -19,13 +19,20 @@ class TestServiceIntegrationTest {
             setDataSourceType("read-only-profile")
             testService.createTestEntity2()
         } catch (ex: Exception) {
-            println("Expected exception when trying to create test entity with read-only profile: ${ex.message}")
-        }
+            if ("permission" in (ex.cause?.message?.lowercase() ?: "")) {
+                println("Expected exception when trying to create test entity with read-only profile: ${ex.message}")
+            } else {
+                throw ex
+            }        }
         try {
             setDataSourceType("write-only-profile")
             testService.createTestEntity2()
         } catch (ex: Exception) {
-            println("Expected exception when trying to create test entity with write-only profile: ${ex.message}")
+            if ("permission" in (ex.cause?.message?.lowercase() ?: "")) {
+                println("Expected exception when trying to create test entity with write-only profile: ${ex.message}")
+            } else {
+                throw ex
+            }        
         }
         setDataSourceType("full-access-profile")
         testService.createTestEntity2()
@@ -37,13 +44,21 @@ class TestServiceIntegrationTest {
             testService.doASave()
             assertFalse(true, "doASave should throw an exception when using a read-only profile")
         } catch (e: Exception) {
-            println("Caught expected exception when trying to save with read-only profile: ${e.message}")
+            if ("permission" in (e.cause?.message?.lowercase() ?: "")) {
+                println("Expected exception when trying to create test entity with read-only profile: ${e.message}")
+            } else {
+                throw e
+            }        
         }
         try {
             testService.doReadAndWrite()
             assertFalse(true, "doReadAndWrite should throw an exception when using a read-only profile")
         } catch (e: Exception) {
-            println("Caught expected exception when trying to read and write with read-only profile: ${e.message}")
+            if ("permission" in (e.cause?.message?.lowercase() ?: "")) {
+                println("Expected exception when trying to create test entity with write-only profile: ${e.message}")
+            } else {
+                throw e
+            }   
         }
 
         // Switch the profile to write only
@@ -53,13 +68,21 @@ class TestServiceIntegrationTest {
             testService.doARead()
             assertFalse(true, "doARead should throw an exception when using a write only-profile")
         } catch (e: Exception) {
-            println("Caught expected exception when trying to save with write only-profile")
+            if ("permission" in (e.cause?.message?.lowercase() ?: "")) {
+                println("Expected exception when trying to create test entity with write-only profile: ${e.message}")
+            } else {
+                throw e
+            }   
         }
         try {
             testService.doReadAndWrite()
             assertFalse(true, "doReadAndWrite should throw an exception when using a read-only profile")
         } catch (e: Exception) {
-            println("Caught expected exception when trying to read and write with read-only profile: ${e.message}")
+            if ("permission" in (e.cause?.message?.lowercase() ?: "")) {
+                println("Expected exception when trying to create test entity with write-only profile: ${e.message}")
+            } else {
+                throw e
+            }   
         }
 
         // Switch to a full access profile
@@ -71,13 +94,21 @@ class TestServiceIntegrationTest {
             setDataSourceType("read-only-profile")
             testService.dropTestEntity2()
         } catch (ex: Exception) {
-            println("Expected exception when trying to create test entity with read-only profile: ${ex.message}")
+            if ("permission" in (ex.cause?.message?.lowercase() ?: "")) {
+                println("Expected exception when trying to create test entity with read-only profile: ${ex.message}")
+            } else {
+                throw ex
+            }
         }
         try {
             setDataSourceType("write-only-profile")
             testService.dropTestEntity2()
         } catch (ex: Exception) {
-            println("Expected exception when trying to create test entity with read-only profile: ${ex.message}")
+            if ("permission" in (ex.cause?.message?.lowercase() ?: "")) {
+                println("Expected exception when trying to create test entity with write-only profile: ${ex.message}")
+            } else {
+                throw ex
+            }        
         }
         setDataSourceType("full-access-profile")
         testService.dropTestEntity2()

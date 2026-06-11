@@ -12,6 +12,14 @@ dependencies {
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.17.1")
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.17.1")
     api("com.zaxxer:HikariCP:5.1.0")
+
+    implementation(platform("dev.langchain4j:langchain4j-bom:1.16.2"))
+    implementation("dev.langchain4j:langchain4j")
+
+    implementation(platform("org.bsc.langgraph4j:langgraph4j-bom:1.8.17"))
+    implementation("org.bsc.langgraph4j:langgraph4j-core")
+    implementation("org.bsc.langgraph4j:langgraph4j-langchain4j")
+
     implementation(project(":konze-agent"))
     testImplementation(kotlin("test"))
     testImplementation("com.h2database:h2:2.2.224")

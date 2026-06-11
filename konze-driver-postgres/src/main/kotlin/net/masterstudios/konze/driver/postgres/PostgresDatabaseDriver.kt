@@ -30,12 +30,8 @@ public class PostgresDatabaseDriver(
         val sql = "create role \"$roleName\" nologin;"
         connection.createStatement().use { statement ->
             statement.execute(sql)
-            // ensure the role has no default permissions
-            statement.execute("revoke all privileges on all tables in schema public from \"$roleName\"")
-            statement.execute("revoke all privileges on all sequences in schema public from \"$roleName\"")
-            statement.execute("revoke all privileges on all functions in schema public from \"$roleName\"")
-            statement.execute("revoke all privileges on schema public from \"$roleName\"")
         }
+        revokeAllPermissionsOnUser(konzeUser, "public")
     }
 
     override fun isUserExisting(username: String): Boolean {
@@ -65,6 +61,7 @@ public class PostgresDatabaseDriver(
             statement.execute("revoke all privileges on all tables in schema \"$schema\" from \"$username\"")
             statement.execute("revoke all privileges on all sequences in schema \"$schema\" from \"$username\"")
             statement.execute("revoke all privileges on all functions in schema \"$schema\" from \"$username\"")
+            statement.execute("revoke all privileges on all routines in schema \"$schema\" from \"$username\"")
             statement.execute("revoke all privileges on schema \"$schema\" from \"$username\"")
             if (dbName != null) {
                 statement.execute("revoke all privileges on database \"$dbName\" from \"$username\"")
@@ -74,6 +71,10 @@ public class PostgresDatabaseDriver(
                 statement.execute("revoke \"$konzeUser\" from \"$username\"")
             } catch (e: Exception) {}
             statement.execute("revoke all on schema \"$schema\" from public")
+            statement.execute("alter default privileges in schema \"$schema\" revoke all on tables from \"konze-users\"")
+            statement.execute("alter default privileges in schema \"$schema\" revoke all on sequences from \"konze-users\"")
+            statement.execute("alter default privileges in schema \"$schema\" revoke all on functions from \"konze-users\"")
+            statement.execute("alter default privileges in schema \"$schema\" revoke all on routines from \"konze-users\"")
         }
     }
 
@@ -105,6 +106,7 @@ public class PostgresDatabaseDriver(
                 statement.execute("grant all privileges on all tables in schema \"$schema\" to \"$username\"")
                 statement.execute("grant all privileges on all sequences in schema \"$schema\" to \"$username\"")
                 statement.execute("grant all privileges on all functions in schema \"$schema\" to \"$username\"")
+                statement.execute("grant all privileges on all routines in schema \"$schema\" to \"$username\"")
                 statement.execute("grant all privileges on schema \"$schema\" to \"$username\"")
                 if (dbName != null) {
                     statement.execute("grant all privileges on database \"$dbName\" to \"$username\"")

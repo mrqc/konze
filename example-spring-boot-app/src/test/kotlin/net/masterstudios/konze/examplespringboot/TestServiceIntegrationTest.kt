@@ -42,7 +42,7 @@ class TestServiceIntegrationTest {
         testService.doARead()
         try {
             testService.doASave()
-            assertFalse(true, "doASave should throw an exception when using a read-only profile")
+            assertFalse(true, "doASave must throw an exception when using a read-only profile")
         } catch (e: Exception) {
             if ("permission" in (e.cause?.message?.lowercase() ?: "")) {
                 println("Expected exception when trying to create test entity with read-only profile: ${e.message}")
@@ -52,7 +52,7 @@ class TestServiceIntegrationTest {
         }
         try {
             testService.doReadAndWrite()
-            assertFalse(true, "doReadAndWrite should throw an exception when using a read-only profile")
+            assertFalse(true, "doReadAndWrite must throw an exception when using a read-only profile")
         } catch (e: Exception) {
             if ("permission" in (e.cause?.message?.lowercase() ?: "")) {
                 println("Expected exception when trying to create test entity with write-only profile: ${e.message}")
@@ -66,7 +66,7 @@ class TestServiceIntegrationTest {
         testService.doASave()
         try {
             testService.doARead()
-            assertFalse(true, "doARead should throw an exception when using a write only-profile")
+            assertFalse(true, "doARead must throw an exception when using a write only-profile")
         } catch (e: Exception) {
             if ("permission" in (e.cause?.message?.lowercase() ?: "")) {
                 println("Expected exception when trying to create test entity with write-only profile: ${e.message}")
@@ -76,7 +76,7 @@ class TestServiceIntegrationTest {
         }
         try {
             testService.doReadAndWrite()
-            assertFalse(true, "doReadAndWrite should throw an exception when using a read-only profile")
+            assertFalse(true, "doReadAndWrite must throw an exception when using a read-only profile")
         } catch (e: Exception) {
             if ("permission" in (e.cause?.message?.lowercase() ?: "")) {
                 println("Expected exception when trying to create test entity with write-only profile: ${e.message}")
@@ -122,7 +122,7 @@ class TestServiceIntegrationTest {
             this.`test process method handles exception in profile`()
         } catch (e: Exception) {
             println("Test caught unexpected exception: ${e.message}")
-            assertFalse(true, "process method should handle exceptions internally and not throw them")
+            assertFalse(true, "process method must handle exceptions internally and not throw them")
         }
     }
 }

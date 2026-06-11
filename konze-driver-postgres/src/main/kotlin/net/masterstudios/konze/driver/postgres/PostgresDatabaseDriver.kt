@@ -10,9 +10,12 @@ public class PostgresDatabaseDriver(
     configuration: ConfigurationFile
 ) : DatabaseDriver(connection, configuration) {
     
+    public val konzeUser: String = "konze-users"
+    
     override fun setupDatabase() {
-        if (!isUserExisting("konze-users")) {
-            createRole("konze-users")
+        if (!isUserExisting(konzeUser)) {
+            createRole(konzeUser)
+            revokeAllPermissionsOnUser(konzeUser, "public")
         }
         prepareOwnershipTransfer()
         prepareHistorization()
@@ -49,7 +52,7 @@ public class PostgresDatabaseDriver(
         require(username.isNotBlank()) { "username must not be null or empty" }
         require(password.isNotBlank()) { "password must not be null or empty" }
         
-        val sql = "create user \"$username\" with password '$password' noinherit;"
+        val sql = "create user \"$username\" with password '$password' inherit;"
         connection.createStatement().use { it.execute(sql) }
     }
 
@@ -68,8 +71,9 @@ public class PostgresDatabaseDriver(
             }
             // also remove from shared role
             try {
-                statement.execute("revoke \"konze-users\" from \"$username\"")
+                statement.execute("revoke \"$konzeUser\" from \"$username\"")
             } catch (e: Exception) {}
+            statement.execute("revoke all on schema \"$schema\" from public")
         }
     }
 
@@ -83,33 +87,19 @@ public class PostgresDatabaseDriver(
 
     override fun grantPermissionsOnUser(username: String, schema: String, permissions: List<Permission>) {
         require(username.isNotBlank()) { "username must not be null or empty" }
-        
         connection.createStatement().use { statement ->
             // CLEAN SLATE
             val dbName = connection.catalog
-            statement.execute("revoke all privileges on all tables in schema \"$schema\" from \"$username\"")
-            statement.execute("revoke all privileges on all sequences in schema \"$schema\" from \"$username\"")
-            statement.execute("revoke all privileges on all functions in schema \"$schema\" from \"$username\"")
-            statement.execute("revoke all privileges on schema \"$schema\" from \"$username\"")
-            if (dbName != null) {
-                statement.execute("revoke all privileges on database \"$dbName\" from \"$username\"")
-            }
-            try {
-                statement.execute("revoke \"konze-users\" from \"$username\"")
-            } catch (e: Exception) {}
-
-            statement.execute("revoke all on schema \"$schema\" from public")
 
             if (permissions.isEmpty()) return
-
             // 1. Grant usage on schema and set search path
             statement.execute("grant usage on schema \"$schema\" to \"$username\"")
-            statement.execute("alter user \"$username\" set search_path to \"$schema\", public")
+            statement.execute("alter user \"$username\" set search_path to $schema, public")
 
             // For full access users, we enable inheritance so they can manage objects (DROP/ALTER)
             statement.execute("alter user \"$username\" inherit")
             // User must always be member of konze-users for the event trigger to work correctly (owner management)
-            statement.execute("grant \"konze-users\" to \"$username\"")
+            statement.execute("grant \"$konzeUser\" to \"$username\"")
 
             if (permissions.contains(Permission.ALL_PRIVILEGES)) {
                 statement.execute("grant all privileges on all tables in schema \"$schema\" to \"$username\"")
@@ -123,7 +113,6 @@ public class PostgresDatabaseDriver(
                 statement.execute("alter default privileges in schema \"$schema\" grant all privileges on sequences to \"$username\"")
                 statement.execute("alter default privileges in schema \"$schema\" grant all privileges on functions to \"$username\"")
             } else {
-                // 2. Map to valid table privileges
                 val tablePrivileges = setOf(
                     Permission.SELECT, Permission.INSERT, Permission.UPDATE, 
                     Permission.DELETE, Permission.TRUNCATE, Permission.REFERENCES, Permission.TRIGGER,
@@ -133,11 +122,7 @@ public class PostgresDatabaseDriver(
                 val privsToGrant = permissions.intersect(tablePrivileges)
                 if (privsToGrant.isNotEmpty()) {
                     val privsString = privsToGrant.joinToString(", ") { it.name.lowercase() }
-                    
-                    // Grant on current tables
                     statement.execute("grant $privsString on all tables in schema \"$schema\" to \"$username\"")
-                    
-                    // Grant on future tables
                     statement.execute("alter default privileges in schema \"$schema\" grant $privsString on tables to \"$username\"")
                 }
 
@@ -212,7 +197,7 @@ public class PostgresDatabaseDriver(
                             begin
                                 -- dynamically execute: alter <type> <identity> owner to "konze-users"
                                 execute format(
-                                    'alter %s %s owner to "konze-users";', 
+                                    'alter %s %s owner to "$konzeUser";', 
                                     obj.object_type, 
                                     obj.object_identity
                                 );
@@ -250,8 +235,8 @@ public class PostgresDatabaseDriver(
             """.trimIndent())
             
             // grant access to history table to the shared role
-            statement.execute("grant all privileges on table data_history to \"konze-users\"")
-            statement.execute("grant usage, select on sequence data_history_id_seq to \"konze-users\"")
+            statement.execute("grant all privileges on table data_history to \"$konzeUser\"")
+            statement.execute("grant usage, select on sequence data_history_id_seq to \"$konzeUser\"")
 
             statement.execute("""
                 do $$

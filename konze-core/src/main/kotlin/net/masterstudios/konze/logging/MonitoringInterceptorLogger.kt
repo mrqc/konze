@@ -1,14 +1,14 @@
 package net.masterstudios.konze.logging
 
 import net.masterstudios.konze.DatabaseContext
-import net.masterstudios.konze.agent.MonitoringInterceptorDelegate
+import net.masterstudios.konze.agent.QueryExecutionInterceptorDelegate
 import java.io.File
 import java.sql.Connection
 import java.time.LocalDateTime
 
 public class MonitoringInterceptorLogger(
     public val databaseContexts: MutableMap<String, DatabaseContext>
-) : Logger(), MonitoringInterceptorDelegate {
+) : Logger(), QueryExecutionInterceptorDelegate {
 
     private fun logToFile(connection: Connection, message: String) {
         for (databaseContext in databaseContexts.values) {

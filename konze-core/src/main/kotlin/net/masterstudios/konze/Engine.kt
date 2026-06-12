@@ -31,8 +31,8 @@ public class Engine(private val configFilePaths: List<String>) : AutoCloseable {
     public val jvmAgent: DatabaseCommunicationAgent = DatabaseCommunicationAgent.instance;
     
     init {
-        jvmAgent.setQueryExecutionInterceptorDelegate(QueryExecutionInterceptorLogger(databaseContexts))
-        jvmAgent.setMonitoringInterceptorDelegate(MonitoringInterceptorLogger(databaseContexts))
+        jvmAgent.addQueryExecutionInterceptorDelegate(QueryExecutionInterceptorLogger(databaseContexts))
+        jvmAgent.addQueryExecutionInterceptorDelegate(MonitoringInterceptorLogger(databaseContexts))
         for (configFilePath in configFilePaths) {
             val databaseContext = DatabaseContext(configFilePath)
             databaseContexts[databaseContext.configuration.konze.databaseContextId!!] = databaseContext

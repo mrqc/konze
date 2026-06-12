@@ -5,8 +5,21 @@ import java.sql.Statement
 import java.sql.PreparedStatement
 
 object QueryExecutionInterceptor {
-    @JvmField
-    public var delegate: QueryExecutionInterceptorDelegate? = null
+    private val delegates: MutableList<QueryExecutionInterceptorDelegate> = ArrayList()
+
+    @JvmStatic
+    fun addDelegate(delegate: QueryExecutionInterceptorDelegate) {
+        synchronized(delegates) {
+            delegates.add(delegate)
+        }
+    }
+
+    @JvmStatic
+    fun removeDelegate(delegate: QueryExecutionInterceptorDelegate) {
+        synchronized(delegates) {
+            delegates.remove(delegate)
+        }
+    }
 
     private fun extractSql(target: Statement, args: Array<Any?>): String? {
         val sql: String? = if (args.isNotEmpty() && args[0] is String) {
@@ -33,9 +46,11 @@ object QueryExecutionInterceptor {
                 val connection = target.connection
                 val threadId = Thread.currentThread().threadId()
                 
-                delegate?.onStatementExecuteInvoke(sql, connection)
+                synchronized(delegates) {
+                    delegates.forEach { it.onStatementExecuteInvoke(sql, connection) }
+                }
                 
-                println("[AGENT222] [Thread-$threadId] executing sql: $sql")
+                println("[AGENT] [Thread-$threadId] executing sql: $sql")
                 
                 return System.currentTimeMillis()
             }
@@ -60,8 +75,10 @@ object QueryExecutionInterceptor {
                 val connection = target.connection
                 val threadId = Thread.currentThread().threadId()
                 
-                delegate?.onStatementExecuteFinished(sql, connection, durationMs)
-                println("[AGENT2222] [Thread-$threadId] finished sql: $sql (took ${durationMs}ms)")
+                synchronized(delegates) {
+                    delegates.forEach { it.onStatementExecuteFinished(sql, connection, durationMs) }
+                }
+                println("[AGENT] [Thread-$threadId] finished sql: $sql (took ${durationMs}ms)")
             }
         } catch (e: Exception) {
             println("[AGENT] error logging sql (exit): ${e.message}")

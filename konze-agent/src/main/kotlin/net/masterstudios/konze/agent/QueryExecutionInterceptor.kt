@@ -42,16 +42,12 @@ object QueryExecutionInterceptor {
         try {
             if (target is Statement) {
                 val sql = extractSql(target, args) ?: return 0L
-
                 val connection = target.connection
                 val threadId = Thread.currentThread().threadId()
-                
                 synchronized(delegates) {
                     delegates.forEach { it.onStatementExecuteInvoke(sql, connection) }
                 }
-                
                 println("[AGENT] [Thread-$threadId] executing sql: $sql")
-                
                 return System.currentTimeMillis()
             }
         } catch (e: Exception) {
@@ -71,10 +67,8 @@ object QueryExecutionInterceptor {
             if (target is Statement && startTime != 0L) {
                 val sql = extractSql(target, args) ?: return
                 val durationMs = System.currentTimeMillis() - startTime
-                
                 val connection = target.connection
                 val threadId = Thread.currentThread().threadId()
-                
                 synchronized(delegates) {
                     delegates.forEach { it.onStatementExecuteFinished(sql, connection, durationMs) }
                 }

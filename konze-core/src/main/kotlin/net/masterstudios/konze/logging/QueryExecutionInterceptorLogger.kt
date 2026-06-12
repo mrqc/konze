@@ -12,9 +12,7 @@ public class QueryExecutionInterceptorLogger(
     private fun logToFile(connection: Connection, message: String) {
         for (databaseContext in databaseContexts.values) {
             val pool = databaseContext.poolManager.getPoolFromConnection(connection) ?: continue
-            
             if (!pool.profileConfiguration.configuration.query.executionLogging) return
-            
             val logPath = pool.profileConfiguration.configuration.query.executionLog
             val threadId = Thread.currentThread().threadId()
             val timestamp = LocalDateTime.now()

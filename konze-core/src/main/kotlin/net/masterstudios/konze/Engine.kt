@@ -3,6 +3,7 @@ package net.masterstudios.konze
 import net.masterstudios.konze.agent.DatabaseCommunicationAgent
 import net.masterstudios.konze.database.DatabaseAdministrationManager
 import net.masterstudios.konze.database.HikariPoolsManager
+import net.masterstudios.konze.database.OwnershipTransferInterceptor
 import net.masterstudios.konze.logging.SlowQueryInterceptorLogger
 import net.masterstudios.konze.logging.QueryExecutionInterceptorLogger
 import net.masterstudios.konze.yaml.ConfigurationFile
@@ -33,6 +34,7 @@ public class Engine(private val configFilePaths: List<String>) : AutoCloseable {
     init {
         jvmAgent.addQueryExecutionInterceptorDelegate(QueryExecutionInterceptorLogger(databaseContexts))
         jvmAgent.addQueryExecutionInterceptorDelegate(SlowQueryInterceptorLogger(databaseContexts))
+        jvmAgent.addQueryExecutionInterceptorDelegate(OwnershipTransferInterceptor(databaseContexts))
         for (configFilePath in configFilePaths) {
             val databaseContext = DatabaseContext(configFilePath)
             databaseContexts[databaseContext.configuration.konze.databaseContextId!!] = databaseContext

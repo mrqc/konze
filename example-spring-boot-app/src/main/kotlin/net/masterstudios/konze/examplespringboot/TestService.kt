@@ -20,6 +20,21 @@ class TestService(
     fun dropTestEntity2() {
         jdbcTemplate.execute("drop table if exists public.test_entity2")
     }
+    
+    @Transactional
+    fun insertIntoTestEntity2(uuid: String) {
+        jdbcTemplate.execute("insert into public.test_entity2 values ('$uuid', 'test name')")
+    }
+    
+    @Transactional
+    fun updateTestEntity2(uuid: String) {
+        jdbcTemplate.execute("update public.test_entity2 set name = 'test name 2' where id = '$uuid'")
+    }
+    
+    @Transactional
+    fun deleteTestEntity2(uuid: String) {
+        jdbcTemplate.execute("delete from public.test_entity2 where id = '$uuid'")
+    }
 
     @Transactional
     fun findAllAndDeleteAll() {

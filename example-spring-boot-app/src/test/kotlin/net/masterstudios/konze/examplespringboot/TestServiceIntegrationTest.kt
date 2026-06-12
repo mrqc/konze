@@ -5,6 +5,7 @@ import net.masterstudios.konze.spring.DataSourceContextHolder.setDataSourceType
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
+import java.util.UUID
 import kotlin.test.assertFalse
 
 @SpringBootTest
@@ -23,7 +24,8 @@ class TestServiceIntegrationTest {
                 println("Expected exception when trying to create test entity with read-only profile: ${ex.message}")
             } else {
                 throw ex
-            }        }
+            }        
+        }
         try {
             setDataSourceType("write-only-profile")
             testService.createTestEntity2()
@@ -85,6 +87,13 @@ class TestServiceIntegrationTest {
             }   
         }
 
+        setDataSourceType("full-access-profile")
+        val uuid = UUID.randomUUID()
+        testService.insertIntoTestEntity2(uuid.toString())
+        testService.updateTestEntity2(uuid.toString())
+        testService.deleteTestEntity2(uuid.toString())
+        testService.dropTestEntity2()
+
         // Switch to a full access profile
         setDataSourceType("full-access-profile")
         testService.findAllAndDeleteAll()
@@ -110,8 +119,6 @@ class TestServiceIntegrationTest {
                 throw ex
             }        
         }
-        setDataSourceType("full-access-profile")
-        testService.dropTestEntity2()
 
         clearDataSourceType()
     }

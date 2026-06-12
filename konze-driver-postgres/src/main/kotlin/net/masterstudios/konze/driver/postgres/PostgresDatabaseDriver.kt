@@ -15,8 +15,8 @@ public class PostgresDatabaseDriver(
     override fun setupDatabase() {
         if (!isUserExisting(konzeUser)) {
             createRole(konzeUser)
-            revokeAllPermissionsOnUser(konzeUser, "public")
         }
+        revokeAllPermissionsOnUser(konzeUser, "public")
         prepareOwnershipTransfer()
         prepareHistorization()
     }
@@ -31,7 +31,6 @@ public class PostgresDatabaseDriver(
         connection.createStatement().use { statement ->
             statement.execute(sql)
         }
-        revokeAllPermissionsOnUser(konzeUser, "public")
     }
 
     override fun isUserExisting(username: String): Boolean {
@@ -71,10 +70,10 @@ public class PostgresDatabaseDriver(
                 statement.execute("revoke \"$konzeUser\" from \"$username\"")
             } catch (e: Exception) {}
             statement.execute("revoke all on schema \"$schema\" from public")
-            statement.execute("alter default privileges in schema \"$schema\" revoke all on tables from \"konze-users\"")
-            statement.execute("alter default privileges in schema \"$schema\" revoke all on sequences from \"konze-users\"")
-            statement.execute("alter default privileges in schema \"$schema\" revoke all on functions from \"konze-users\"")
-            statement.execute("alter default privileges in schema \"$schema\" revoke all on routines from \"konze-users\"")
+            statement.execute("alter default privileges in schema \"$schema\" revoke all on tables from \"$username\"")
+            statement.execute("alter default privileges in schema \"$schema\" revoke all on sequences from \"$username\"")
+            statement.execute("alter default privileges in schema \"$schema\" revoke all on functions from \"$username\"")
+            statement.execute("alter default privileges in schema \"$schema\" revoke all on routines from \"$username\"")
         }
     }
 

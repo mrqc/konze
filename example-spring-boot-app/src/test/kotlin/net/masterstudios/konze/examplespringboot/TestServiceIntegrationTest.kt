@@ -86,16 +86,47 @@ class TestServiceIntegrationTest {
                 throw e
             }   
         }
-
-        setDataSourceType("full-access-profile")
+        
         val uuid = UUID.randomUUID()
+        setDataSourceType("read-only-profile")
+        try {
+            testService.insertIntoTestEntity2(uuid.toString())
+            assertFalse(true, "insert must throw an exception when using a read-only profile")
+        } catch (e: Exception) {
+            if ("permission" in (e.cause?.message?.lowercase() ?: "")) {
+                println("Expected exception when trying to insert test entity with read-only profile: ${e.message}")
+            } else {
+                throw e
+            }
+        }
+        try {
+            testService.updateTestEntity2(uuid.toString())
+            assertFalse(true, "update must throw an exception when using a read-only profile")
+        } catch (e: Exception) {
+            if ("permission" in (e.cause?.message?.lowercase() ?: "")) {
+                println("Expected exception when trying to create test entity with read-only profile: ${e.message}")
+            } else {
+                throw e
+            }
+        }
+        try {
+            testService.deleteTestEntity2(uuid.toString())
+            assertFalse(true, "delete must throw an exception when using a read-only profile")
+        } catch (e: Exception) {
+            if ("permission" in (e.cause?.message?.lowercase() ?: "")) {
+                println("Expected exception when trying to delete test entity with read-only profile: ${e.message}")
+            } else {
+                throw e
+            }
+        }
+
+        // Switch to a full access profile
+        setDataSourceType("full-access-profile")
         testService.insertIntoTestEntity2(uuid.toString())
         testService.updateTestEntity2(uuid.toString())
         testService.deleteTestEntity2(uuid.toString())
         testService.dropTestEntity2()
 
-        // Switch to a full access profile
-        setDataSourceType("full-access-profile")
         testService.findAllAndDeleteAll()
         
         // CLEANUP

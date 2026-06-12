@@ -64,6 +64,8 @@ public class PostgresDatabaseDriver(
             statement.execute("revoke all privileges on schema \"$schema\" from \"$username\"")
             if (dbName != null) {
                 statement.execute("revoke all privileges on database \"$dbName\" from \"$username\"")
+                //statement.execute("grant connect on database \"$dbName\" to \"$username\"")
+                //statement.execute("grant usage on schema \"$schema\" to \"$username\"")
             }
             // also remove from shared role
             try {

@@ -47,13 +47,13 @@ public class SchemaDiscoveryController(
         return "Profile not found for path: $profilePath"
     }
     
-    fun handleDynamicRequest(request: HttpServletRequest): ResponseEntity<String?> {
+    fun schemaDiscoveryEndpoint(request: HttpServletRequest): ResponseEntity<String?> {
         return ResponseEntity.ok<String?>(getSchemaDiscovery(request.getRequestURI()))
     }
 
     @Throws(NoSuchMethodException::class)
     fun registerEndpoint(path: String) {
-        val targetMethod = SchemaDiscoveryController::class.java.getMethod("handleDynamicRequest", HttpServletRequest::class.java)
+        val targetMethod = SchemaDiscoveryController::class.java.getMethod("schemaDiscoveryEndpoint", HttpServletRequest::class.java)
         val mappingInfo = RequestMappingInfo
             .paths(path)
             .methods(RequestMethod.GET)

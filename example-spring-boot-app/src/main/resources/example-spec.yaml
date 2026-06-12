@@ -35,7 +35,7 @@ konze:
         username: full-access-user
         password: konze_password
         autoCommit: true
-        connectionTimeout: 30000
+        connectionTimeout: 3000
         idleTimeout: 600000
         keepaliveTime: 0
         maxLifetime: 1800000
@@ -53,12 +53,14 @@ konze:
         - select
       pool:
         jdbcUrl: jdbc:postgresql://localhost:5432/konze_db
+        connectionTimeout: 3000
 
     write-only-profile:
       permissions:
         - insert
       pool:
         jdbcUrl: jdbc:postgresql://localhost:5432/konze_db
+        connectionTimeout: 3000
         
   databaseAdministration:
     access:

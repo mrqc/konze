@@ -11,10 +11,6 @@ public class DatabaseCommunicationAgent private constructor() {
         QueryExecutionInterceptor.delegate = delegate
     }
     
-    public fun setMonitoringInterceptorDelegate(delegate: MonitoringInterceptorDelegate) {
-        MonitoringInterceptor.delegate = delegate
-    }
-
     companion object {
         @JvmStatic
         public val instance: DatabaseCommunicationAgent = DatabaseCommunicationAgent()

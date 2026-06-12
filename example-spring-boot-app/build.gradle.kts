@@ -6,7 +6,6 @@ plugins {
 }
 
 group = "net.master-studios"
-version = "1.0-SNAPSHOT"
 
 repositories {
     mavenCentral()

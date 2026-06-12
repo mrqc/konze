@@ -35,7 +35,7 @@ object QueryExecutionInterceptor {
                 
                 delegate?.onStatementExecuteInvoke(sql, connection)
                 
-                println("[AGENT] [Thread-$threadId] executing sql: $sql")
+                println("[AGENT222] [Thread-$threadId] executing sql: $sql")
                 
                 return System.currentTimeMillis()
             }
@@ -61,7 +61,7 @@ object QueryExecutionInterceptor {
                 val threadId = Thread.currentThread().threadId()
                 
                 delegate?.onStatementExecuteFinished(sql, connection, durationMs)
-                println("[AGENT] [Thread-$threadId] finished sql: $sql (took ${durationMs}ms)")
+                println("[AGENT2222] [Thread-$threadId] finished sql: $sql (took ${durationMs}ms)")
             }
         } catch (e: Exception) {
             println("[AGENT] error logging sql (exit): ${e.message}")

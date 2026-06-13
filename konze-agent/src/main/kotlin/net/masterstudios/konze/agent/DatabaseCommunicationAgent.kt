@@ -21,7 +21,6 @@ public class DatabaseCommunicationAgent private constructor() {
 
         @JvmStatic
         fun premain(agentArgs: String?, inst: Instrumentation) {
-            System.err.println("[AGENT] SQL Logging Agent successfully initialized!")
             println("[AGENT] SQL Logging Agent successfully initialized!")
 
             AgentBuilder.Default()

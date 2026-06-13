@@ -155,13 +155,4 @@ class TestServiceIntegrationTest {
         clearDataSourceType()
     }
     
-    @Test
-    fun test() {
-        try {
-            this.`test process method handles exception in profile`()
-        } catch (e: Exception) {
-            println("Test caught unexpected exception: ${e.message}")
-            assertFalse(true, "process method must handle exceptions internally and not throw them")
-        }
-    }
 }

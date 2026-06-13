@@ -1,8 +1,12 @@
 package net.masterstudios.konze.agent
 
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import net.bytebuddy.asm.Advice
 import java.sql.Statement
 import java.sql.PreparedStatement
+
 
 object QueryExecutionInterceptor {
     private val delegates: MutableList<QueryExecutionInterceptorDelegate> = ArrayList()

@@ -46,7 +46,7 @@ konze:
         initializationFailTimeout: -1
         readOnly: false
         validationTimeout: 5000
-        leakDetectionThreshold: 2000
+        leakDetectionThreshold: 3000
 
     read-only-profile:
       permissions:

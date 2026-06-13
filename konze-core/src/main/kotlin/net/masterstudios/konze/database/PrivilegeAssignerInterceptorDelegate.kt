@@ -34,6 +34,7 @@ public class PrivilegeAssignerInterceptorDelegate(
                 val schema = pool.poolConfiguration.schema ?: "public"
                 runBlocking {
                     backgroundScope.launch {
+                        println(sql)
                         context.databaseAdministrationManager.driver.grantPermissionsOnUser(
                             username,
                             schema,

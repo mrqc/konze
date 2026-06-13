@@ -19,6 +19,7 @@ class TestServiceIntegrationTest {
         try {
             setDataSourceType("read-only-profile")
             testService.createTestEntity2()
+            assertFalse(true, "create table must throw an exception when using a read-only profile")
         } catch (ex: Exception) {
             if ("permission" in (ex.cause?.message?.lowercase() ?: "")) {
                 println("Expected exception when trying to create test entity with read-only profile: ${ex.message}")
@@ -29,6 +30,7 @@ class TestServiceIntegrationTest {
         try {
             setDataSourceType("write-only-profile")
             testService.createTestEntity2()
+            assertFalse(true, "create table must throw an exception when using a write-only profile")
         } catch (ex: Exception) {
             if ("permission" in (ex.cause?.message?.lowercase() ?: "")) {
                 println("Expected exception when trying to create test entity with write-only profile: ${ex.message}")
@@ -125,8 +127,6 @@ class TestServiceIntegrationTest {
         testService.insertIntoTestEntity2(uuid.toString())
         testService.updateTestEntity2(uuid.toString())
         testService.deleteTestEntity2(uuid.toString())
-        testService.dropTestEntity2()
-
         testService.findAllAndDeleteAll()
         
         // CLEANUP
@@ -150,6 +150,7 @@ class TestServiceIntegrationTest {
                 throw ex
             }        
         }
+        testService.dropTestEntity2()
 
         clearDataSourceType()
     }

@@ -6,7 +6,7 @@ import java.io.File
 import java.sql.Connection
 import java.time.LocalDateTime
 
-public class SlowQueryInterceptorLogger(
+public class SlowQueryInterceptorDelegate(
     public val databaseContexts: MutableMap<String, DatabaseContext>
 ) : Logger(), QueryExecutionInterceptorDelegate {
 

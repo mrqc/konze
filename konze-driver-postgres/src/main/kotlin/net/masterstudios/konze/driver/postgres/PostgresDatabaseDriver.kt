@@ -199,11 +199,18 @@ public class PostgresDatabaseDriver(
                             
                             begin
                                 -- dynamically execute: alter <type> <identity> owner to "konze-users"
-                                execute format(
-                                    'alter %s %s owner to "$konzeUser";', 
-                                    obj.object_type, 
-                                    obj.object_identity
-                                );
+                                execute format('alter %s %s owner to "$konzeUser";',  obj.object_type, obj.object_identity);
+                                execute format('revoke all privileges on all tables in schema "%s" from "$konzeUser"', obj.schema_name);
+                                execute format('revoke all privileges on all sequences in schema "%s" from "$konzeUser"', obj.schema_name);
+                                execute format('revoke all privileges on all functions in schema "%s" from "$konzeUser"', obj.schema_name);
+                                execute format('revoke all privileges on all routines in schema "%s" from "$konzeUser"', obj.schema_name);
+                                execute format('revoke all privileges on schema "%s" from "$konzeUser"', obj.schema_name);
+                                execute format('revoke all privileges on database "%s" from "$konzeUser"', current_database());
+                                execute format('revoke all on schema "%s" from public', obj.schema_name);
+                                execute format('alter default privileges in schema "%s" revoke all on tables from "$konzeUser"', obj.schema_name);
+                                execute format('alter default privileges in schema "%s" revoke all on sequences from "$konzeUser"', obj.schema_name);
+                                execute format('alter default privileges in schema "%s" revoke all on functions from "$konzeUser"', obj.schema_name);
+                                execute format('alter default privileges in schema "%s" revoke all on routines from "$konzeUser"', obj.schema_name);
                             exception when others then
                                 -- ignore errors for objects that cannot have their owner changed
                                 null;

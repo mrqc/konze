@@ -5,7 +5,7 @@ import net.masterstudios.konze.agent.QueryExecutionInterceptorDelegate
 import java.sql.Connection
 import java.time.LocalDateTime
 
-public class QueryExecutionInterceptorLogger(
+public class QueryExecutionInterceptorDelegate(
     public val databaseContexts: MutableMap<String, DatabaseContext>
 ) : Logger(), QueryExecutionInterceptorDelegate {
 

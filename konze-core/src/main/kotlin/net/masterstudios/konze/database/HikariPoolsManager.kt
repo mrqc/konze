@@ -64,7 +64,6 @@ public class HikariPoolsManager(
             } else {
                 null
             }
-
             HikariPoolWrapper(hikariConfig, profileConfig, poolConfig, schemaDiscovery)
         }
     }

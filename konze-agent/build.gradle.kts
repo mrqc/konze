@@ -11,8 +11,6 @@ repositories {
 dependencies {
     implementation(kotlin("stdlib"))
     implementation("net.bytebuddy:byte-buddy:1.14.12")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.0")
     testImplementation(kotlin("test"))
 }
 

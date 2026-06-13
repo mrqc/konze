@@ -19,6 +19,8 @@ dependencies {
     implementation(platform("org.bsc.langgraph4j:langgraph4j-bom:1.8.17"))
     implementation("org.bsc.langgraph4j:langgraph4j-core")
     implementation("org.bsc.langgraph4j:langgraph4j-langchain4j")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.0")
 
     implementation(project(":konze-agent"))
     testImplementation(kotlin("test"))

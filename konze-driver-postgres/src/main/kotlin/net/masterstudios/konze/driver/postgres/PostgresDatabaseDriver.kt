@@ -57,6 +57,7 @@ public class PostgresDatabaseDriver(
         
         val dbName = connection.catalog
         connection.createStatement().use { statement ->
+            // revoke all future permissions
             statement.execute("revoke all privileges on all tables in schema \"$schema\" from \"$username\"")
             statement.execute("revoke all privileges on all sequences in schema \"$schema\" from \"$username\"")
             statement.execute("revoke all privileges on all functions in schema \"$schema\" from \"$username\"")
@@ -64,14 +65,13 @@ public class PostgresDatabaseDriver(
             statement.execute("revoke all privileges on schema \"$schema\" from \"$username\"")
             if (dbName != null) {
                 statement.execute("revoke all privileges on database \"$dbName\" from \"$username\"")
-                //statement.execute("grant connect on database \"$dbName\" to \"$username\"")
-                //statement.execute("grant usage on schema \"$schema\" to \"$username\"")
             }
             // also remove from shared role
             try {
                 statement.execute("revoke \"$konzeUser\" from \"$username\"")
             } catch (e: Exception) {}
             statement.execute("revoke all on schema \"$schema\" from public")
+            // revoke past permissions
             statement.execute("alter default privileges in schema \"$schema\" revoke all on tables from \"$username\"")
             statement.execute("alter default privileges in schema \"$schema\" revoke all on sequences from \"$username\"")
             statement.execute("alter default privileges in schema \"$schema\" revoke all on functions from \"$username\"")
@@ -176,6 +176,10 @@ public class PostgresDatabaseDriver(
     
     override fun prepareOwnershipTransfer() {
         connection.createStatement().use { statement ->
+            /* Trigger function which is transfering ownership from a newly created objects
+               to the konze-users role.
+             */
+            
             statement.execute("""
                 create or replace function trg_reassign_all_owners()
                 returns event_trigger as $$
@@ -222,6 +226,7 @@ public class PostgresDatabaseDriver(
                 $$ language plpgsql security definer;
             """.trimIndent())
             statement.execute("drop event trigger if exists reassign_all_owners_on_ddl")
+            // The event trigger which calls the function define previously
             statement.execute("""
                 create event trigger reassign_all_owners_on_ddl
                 on ddl_command_end
@@ -232,6 +237,7 @@ public class PostgresDatabaseDriver(
     
     override fun prepareHistorization() {
         connection.createStatement().use { statement ->
+            // the historization table defined here
             statement.execute("""
                 create table if not exists data_history (
                     id bigserial primary key,
@@ -248,6 +254,10 @@ public class PostgresDatabaseDriver(
             statement.execute("grant all privileges on table data_history to \"$konzeUser\"")
             statement.execute("grant usage, select on sequence data_history_id_seq to \"$konzeUser\"")
 
+            /* Based on the operation done on a table the data is written
+               in this stored function which is a trigger function and hence 
+               not directly callable.
+             */
             statement.execute("""
                 do $$
                 begin
@@ -285,6 +295,7 @@ public class PostgresDatabaseDriver(
                 val operationsSql = operations.joinToString(" or ")
                 val requiredOps = operations.map { it.uppercase() }.toSet()
                 
+                // Here we get all tables where we want to create a trigger
                 connection.createStatement().use { tableStatement ->
                     val tablesQuery = """
                         select table_name, table_schema 
@@ -294,6 +305,7 @@ public class PostgresDatabaseDriver(
                                 and table_name != 'data_history'
                     """.trimIndent()
                     
+                    // iterate over all tables and based on the yaml files definition create the triggers
                     tableStatement.executeQuery(tablesQuery).use { resultSet ->
                         while (resultSet.next()) {
                             val tableName = resultSet.getString("table_name")

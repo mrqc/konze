@@ -16,6 +16,26 @@ subprojects {
         mavenCentral()
     }
 
+    tasks.withType<Test> {
+        val agentProject = project(":konze-agent")
+        val agentJarTask = agentProject.tasks.getByName<org.gradle.jvm.tasks.Jar>("jar")
+        val agentJarPath = agentJarTask.archiveFile.get().asFile.absolutePath
+        
+        dependsOn(agentJarTask)
+        jvmArgs("-javaagent:$agentJarPath")
+        // Ensure we see agent output in the console
+        testLogging.showStandardStreams = true
+    }
+
+    tasks.withType<JavaExec> {
+        val agentProject = project(":konze-agent")
+        val agentJarTask = agentProject.tasks.getByName<org.gradle.jvm.tasks.Jar>("jar")
+        val agentJarPath = agentJarTask.archiveFile.get().asFile.absolutePath
+        
+        dependsOn(agentJarTask)
+        jvmArgs("-javaagent:$agentJarPath")
+    }
+
     if (project.name.startsWith("konze")) {
         apply(plugin = "maven-publish")
         apply(plugin = "signing")

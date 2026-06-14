@@ -29,4 +29,5 @@ public abstract class DatabaseDriver(
     public abstract fun prepareOwnershipTransfer()
     
     public open fun getConnectionInitializationQuery(schema: String): String = "select 1"
+
 }

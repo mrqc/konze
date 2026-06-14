@@ -6,6 +6,8 @@ import java.sql.PreparedStatement
 
 
 object QueryExecutionInterceptor {
+    @JvmStatic
+    public val NO_MONITORING_MARKER = "@@NOMONITORING@@"
     private val delegates: MutableList<QueryExecutionInterceptorDelegate> = ArrayList()
 
     @JvmStatic
@@ -38,11 +40,16 @@ object QueryExecutionInterceptor {
     @JvmStatic
     fun enter(
         @Advice.This target: Any,
-        @Advice.AllArguments args: Array<Any?>
+        @Advice.AllArguments args: Array<Any?>,
+        @Advice.Origin("#m") methodName: String
     ): Long {
         try {
             if (target is Statement) {
                 val sql = extractSql(target, args) ?: return 0L
+                if (sql.contains(NO_MONITORING_MARKER)) {
+                    return -1
+                }
+                println("[AGENT] Entering method: $methodName")
                 val connection = target.connection
                 val threadId = Thread.currentThread().threadId()
                 synchronized(delegates) {
@@ -62,11 +69,16 @@ object QueryExecutionInterceptor {
     fun exit(
         @Advice.This target: Any,
         @Advice.AllArguments args: Array<Any?>,
-        @Advice.Enter startTime: Long
+        @Advice.Enter startTime: Long,
+        @Advice.Origin("#m") methodName: String
     ) {
         try {
             if (target is Statement && startTime != 0L) {
                 val sql = extractSql(target, args) ?: return
+                if (sql.contains(NO_MONITORING_MARKER)) {
+                    return
+                }
+                println("[AGENT] Exiting method: $methodName")
                 val durationMs = System.currentTimeMillis() - startTime
                 val connection = target.connection
                 val threadId = Thread.currentThread().threadId()

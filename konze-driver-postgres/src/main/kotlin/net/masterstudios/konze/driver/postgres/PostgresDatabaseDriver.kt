@@ -4,12 +4,14 @@ import net.masterstudios.konze.database.DatabaseDriver
 import net.masterstudios.konze.yaml.ConfigurationFile
 import net.masterstudios.konze.yaml.Permission
 import java.sql.Connection
+import java.sql.Statement
 
 public class PostgresDatabaseDriver(
     connection: Connection,
     configuration: ConfigurationFile
 ) : DatabaseDriver(connection, configuration) {
     
+    public val NO_MONITORING_MARKER: String = "/* @@NOMONITORING@@ */ "
     public val konzeUser: String = "konze-users"
     
     override fun setupDatabase() {
@@ -22,7 +24,7 @@ public class PostgresDatabaseDriver(
     }
 
     override fun getConnectionInitializationQuery(schema: String): String {
-        return "set search_path to \"$schema\", public;"
+        return NO_MONITORING_MARKER + "set search_path to \"$schema\", public;"
     }
 
     override fun createRole(roleName: String) {
@@ -37,7 +39,7 @@ public class PostgresDatabaseDriver(
         require(username.isNotBlank()) { "username must not be null or empty" }
         
         val query = "select 1 from pg_roles where rolname = ?"
-        return connection.prepareStatement(query).use { statement ->
+        return connection.prepareStatement(NO_MONITORING_MARKER + query).use { statement ->
             statement.setString(1, username)
             statement.executeQuery().use { it.next() }
         }
@@ -58,24 +60,24 @@ public class PostgresDatabaseDriver(
         val dbName = connection.catalog
         connection.createStatement().use { statement ->
             // revoke all future permissions
-            statement.execute("revoke all privileges on all tables in schema \"$schema\" from \"$username\"")
-            statement.execute("revoke all privileges on all sequences in schema \"$schema\" from \"$username\"")
-            statement.execute("revoke all privileges on all functions in schema \"$schema\" from \"$username\"")
-            statement.execute("revoke all privileges on all routines in schema \"$schema\" from \"$username\"")
-            statement.execute("revoke all privileges on schema \"$schema\" from \"$username\"")
+            executeStatement(statement, "revoke all privileges on all tables in schema \"$schema\" from \"$username\"")
+            executeStatement(statement, "revoke all privileges on all sequences in schema \"$schema\" from \"$username\"")
+            executeStatement(statement, "revoke all privileges on all functions in schema \"$schema\" from \"$username\"")
+            executeStatement(statement, "revoke all privileges on all routines in schema \"$schema\" from \"$username\"")
+            executeStatement(statement, "revoke all privileges on schema \"$schema\" from \"$username\"")
             if (dbName != null) {
-                statement.execute("revoke all privileges on database \"$dbName\" from \"$username\"")
+                executeStatement(statement, "revoke all privileges on database \"$dbName\" from \"$username\"")
             }
             // also remove from shared role
             try {
-                statement.execute("revoke \"$konzeUser\" from \"$username\"")
+                executeStatement(statement, "revoke \"$konzeUser\" from \"$username\"")
             } catch (e: Exception) {}
-            statement.execute("revoke all on schema \"$schema\" from public")
+            executeStatement(statement, "revoke all on schema \"$schema\" from public")
             // revoke past permissions
-            statement.execute("alter default privileges in schema \"$schema\" revoke all on tables from \"$username\"")
-            statement.execute("alter default privileges in schema \"$schema\" revoke all on sequences from \"$username\"")
-            statement.execute("alter default privileges in schema \"$schema\" revoke all on functions from \"$username\"")
-            statement.execute("alter default privileges in schema \"$schema\" revoke all on routines from \"$username\"")
+            executeStatement(statement, "alter default privileges in schema \"$schema\" revoke all on tables from \"$username\"")
+            executeStatement(statement, "alter default privileges in schema \"$schema\" revoke all on sequences from \"$username\"")
+            executeStatement(statement, "alter default privileges in schema \"$schema\" revoke all on functions from \"$username\"")
+            executeStatement(statement, "alter default privileges in schema \"$schema\" revoke all on routines from \"$username\"")
         }
     }
 
@@ -84,7 +86,11 @@ public class PostgresDatabaseDriver(
         require(password.isNotBlank()) { "password must not be null or empty" }
         
         val sql = "alter user \"$username\" with password '$password' noinherit;"
-        connection.createStatement().use { it.execute(sql) }
+        connection.createStatement().use { it.execute(NO_MONITORING_MARKER + sql) }
+    }
+    
+    private fun executeStatement(statement: Statement, sql: String) {
+        statement.execute(NO_MONITORING_MARKER + sql)
     }
 
     override fun grantPermissionsOnUser(username: String, schema: String, permissions: List<Permission>) {
@@ -95,26 +101,26 @@ public class PostgresDatabaseDriver(
 
             if (permissions.isEmpty()) return
             // 1. Grant usage on schema and set search path
-            statement.execute("grant usage on schema \"$schema\" to \"$username\"")
-            statement.execute("alter user \"$username\" set search_path to $schema, public")
+            executeStatement(statement, "grant usage on schema \"$schema\" to \"$username\"")
+            executeStatement(statement, "alter user \"$username\" set search_path to $schema, public")
 
             // For full access users, we enable inheritance so they can manage objects (DROP/ALTER)
-            statement.execute("alter user \"$username\" inherit")
+            executeStatement(statement, "alter user \"$username\" inherit")
             // User must always be member of konze-users for the event trigger to work correctly (owner management)
-            statement.execute("grant \"$konzeUser\" to \"$username\"")
+            executeStatement(statement, "grant \"$konzeUser\" to \"$username\"")
 
             if (permissions.contains(Permission.ALL_PRIVILEGES)) {
-                statement.execute("grant all privileges on all tables in schema \"$schema\" to \"$username\"")
-                statement.execute("grant all privileges on all sequences in schema \"$schema\" to \"$username\"")
-                statement.execute("grant all privileges on all functions in schema \"$schema\" to \"$username\"")
-                statement.execute("grant all privileges on all routines in schema \"$schema\" to \"$username\"")
-                statement.execute("grant all privileges on schema \"$schema\" to \"$username\"")
+                executeStatement(statement, "grant all privileges on all tables in schema \"$schema\" to \"$username\"")
+                executeStatement(statement, "grant all privileges on all sequences in schema \"$schema\" to \"$username\"")
+                executeStatement(statement, "grant all privileges on all functions in schema \"$schema\" to \"$username\"")
+                executeStatement(statement, "grant all privileges on all routines in schema \"$schema\" to \"$username\"")
+                executeStatement(statement, "grant all privileges on schema \"$schema\" to \"$username\"")
                 if (dbName != null) {
-                    statement.execute("grant all privileges on database \"$dbName\" to \"$username\"")
+                    executeStatement(statement, "grant all privileges on database \"$dbName\" to \"$username\"")
                 }
-                statement.execute("alter default privileges in schema \"$schema\" grant all privileges on tables to \"$username\"")
-                statement.execute("alter default privileges in schema \"$schema\" grant all privileges on sequences to \"$username\"")
-                statement.execute("alter default privileges in schema \"$schema\" grant all privileges on functions to \"$username\"")
+                executeStatement(statement, "alter default privileges in schema \"$schema\" grant all privileges on tables to \"$username\"")
+                executeStatement(statement, "alter default privileges in schema \"$schema\" grant all privileges on sequences to \"$username\"")
+                executeStatement(statement, "alter default privileges in schema \"$schema\" grant all privileges on functions to \"$username\"")
             } else {
                 val tablePrivileges = setOf(
                     Permission.SELECT, Permission.INSERT, Permission.UPDATE, 
@@ -125,8 +131,8 @@ public class PostgresDatabaseDriver(
                 val privsToGrant = permissions.intersect(tablePrivileges)
                 if (privsToGrant.isNotEmpty()) {
                     val privsString = privsToGrant.joinToString(", ") { it.name.lowercase() }
-                    statement.execute("grant $privsString on all tables in schema \"$schema\" to \"$username\"")
-                    statement.execute("alter default privileges in schema \"$schema\" grant $privsString on tables to \"$username\"")
+                    executeStatement(statement, "grant $privsString on all tables in schema \"$schema\" to \"$username\"")
+                    executeStatement(statement, "alter default privileges in schema \"$schema\" grant $privsString on tables to \"$username\"")
                 }
 
                 // 3. Handle sequences explicitly
@@ -137,31 +143,31 @@ public class PostgresDatabaseDriver(
 
                 if (sequencePrivileges.isNotEmpty()) {
                     val seqPrivsString = sequencePrivileges.distinct().joinToString(", ")
-                    statement.execute("grant $seqPrivsString on all sequences in schema \"$schema\" to \"$username\"")
-                    statement.execute("alter default privileges in schema \"$schema\" grant $seqPrivsString on sequences to \"$username\"")
+                    executeStatement(statement, "grant $seqPrivsString on all sequences in schema \"$schema\" to \"$username\"")
+                    executeStatement(statement, "alter default privileges in schema \"$schema\" grant $seqPrivsString on sequences to \"$username\"")
                 }
 
                 // 4. Handle schema-level privileges
                 if (permissions.contains(Permission.CREATE)) {
-                    statement.execute("grant create on schema \"$schema\" to \"$username\"")
+                    executeStatement(statement, "grant create on schema \"$schema\" to \"$username\"")
                 }
                 if (permissions.contains(Permission.USAGE)) {
-                    statement.execute("grant usage on schema \"$schema\" to \"$username\"")
+                    executeStatement(statement, "grant usage on schema \"$schema\" to \"$username\"")
                 }
 
                 // 5. Handle function-level privileges
                 if (permissions.contains(Permission.EXECUTE)) {
-                    statement.execute("grant execute on all functions in schema \"$schema\" to \"$username\"")
-                    statement.execute("alter default privileges in schema \"$schema\" grant execute on functions to \"$username\"")
+                    executeStatement(statement, "grant execute on all functions in schema \"$schema\" to \"$username\"")
+                    executeStatement(statement, "alter default privileges in schema \"$schema\" grant execute on functions to \"$username\"")
                 }
 
                 // 6. Handle database-level privileges
                 if (dbName != null) {
                     if (permissions.contains(Permission.CONNECT)) {
-                        statement.execute("grant connect on database \"$dbName\" to \"$username\"")
+                        executeStatement(statement, "grant connect on database \"$dbName\" to \"$username\"")
                     }
                     if (permissions.contains(Permission.TEMPORARY)) {
-                        statement.execute("grant temporary on database \"$dbName\" to \"$username\"")
+                        executeStatement(statement, "grant temporary on database \"$dbName\" to \"$username\"")
                     }
                 }
             }
@@ -170,7 +176,7 @@ public class PostgresDatabaseDriver(
 
     override fun setQueryTimeoutForUser(username: String, executionTimeout: String) {
         connection.createStatement().use { statement ->
-            statement.execute("alter user \"$username\" set statement_timeout = '" + executionTimeout + "'");
+            executeStatement(statement, "alter user \"$username\" set statement_timeout = '" + executionTimeout + "'");
         }
     }
     
@@ -180,7 +186,7 @@ public class PostgresDatabaseDriver(
                to the konze-users role.
              */
             
-            statement.execute("""
+            executeStatement(statement, """
                 create or replace function trg_reassign_all_owners()
                 returns event_trigger as $$
                 declare
@@ -225,9 +231,9 @@ public class PostgresDatabaseDriver(
                 end;
                 $$ language plpgsql security definer;
             """.trimIndent())
-            statement.execute("drop event trigger if exists reassign_all_owners_on_ddl")
+            executeStatement(statement, "drop event trigger if exists reassign_all_owners_on_ddl")
             // The event trigger which calls the function define previously
-            statement.execute("""
+            executeStatement(statement, """
                 create event trigger reassign_all_owners_on_ddl
                 on ddl_command_end
                 execute function trg_reassign_all_owners();
@@ -238,7 +244,7 @@ public class PostgresDatabaseDriver(
     override fun prepareHistorization() {
         connection.createStatement().use { statement ->
             // the historization table defined here
-            statement.execute("""
+            executeStatement(statement, """
                 create table if not exists data_history (
                     id bigserial primary key,
                     table_name text not null,
@@ -251,14 +257,14 @@ public class PostgresDatabaseDriver(
             """.trimIndent())
             
             // grant access to history table to the shared role
-            statement.execute("grant all privileges on table data_history to \"$konzeUser\"")
-            statement.execute("grant usage, select on sequence data_history_id_seq to \"$konzeUser\"")
+            executeStatement(statement, "grant all privileges on table data_history to \"$konzeUser\"")
+            executeStatement(statement, "grant usage, select on sequence data_history_id_seq to \"$konzeUser\"")
 
             /* Based on the operation done on a table the data is written
                in this stored function which is a trigger function and hence 
                not directly callable.
              */
-            statement.execute("""
+            executeStatement(statement, """
                 do $$
                 begin
                     if not exists (select 1 from pg_proc where proname = 'log_table_history') then
@@ -306,7 +312,7 @@ public class PostgresDatabaseDriver(
                     """.trimIndent()
                     
                     // iterate over all tables and based on the yaml files definition create the triggers
-                    tableStatement.executeQuery(tablesQuery).use { resultSet ->
+                    tableStatement.executeQuery(NO_MONITORING_MARKER + tablesQuery).use { resultSet ->
                         while (resultSet.next()) {
                             val tableName = resultSet.getString("table_name")
                             val tableSchema = resultSet.getString("table_schema")
@@ -322,7 +328,7 @@ public class PostgresDatabaseDriver(
                                   and event_object_schema = ?
                             """.trimIndent()
                             
-                            connection.prepareStatement(checkQuery).use { checkStmt ->
+                            connection.prepareStatement(NO_MONITORING_MARKER + checkQuery).use { checkStmt ->
                                 checkStmt.setString(1, triggerName)
                                 checkStmt.setString(2, tableName)
                                 checkStmt.setString(3, tableSchema)
@@ -334,8 +340,8 @@ public class PostgresDatabaseDriver(
                             }
 
                             if (existingOps != requiredOps) {
-                                statement.execute("drop trigger if exists \"$triggerName\" on \"$tableSchema\".\"$tableName\"")
-                                statement.execute("""
+                                executeStatement(statement, "drop trigger if exists \"$triggerName\" on \"$tableSchema\".\"$tableName\"")
+                                executeStatement(statement, """
                                     create trigger "$triggerName"
                                     after $operationsSql on "$tableSchema"."$tableName"
                                     for each row execute function log_table_history()

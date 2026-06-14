@@ -31,6 +31,7 @@ public class ExampleApplication {
                             // Administrative cleanup
                             println("Cleaning up existing table 'agents' with full-access-profile...")
                             statement.execute("drop table if exists agents")
+                            Thread.sleep(2000)
                             
                             println("Creating example table 'agents' with full-access-profile...")
                             statement.execute("""
@@ -40,6 +41,7 @@ public class ExampleApplication {
                                     role varchar(255)
                                 )
                             """.trimIndent())
+                            Thread.sleep(2000)
 
                             // Query role_table_grants and print full results
                             println("Listing role_table_grants for public.agents:")
@@ -58,7 +60,7 @@ public class ExampleApplication {
                             }
                             
                             println("Inserting sample data with full-access-profile...")
-                            statement.execute("insert into agents (name, role) values ('master-agent', 'admin')")
+                            //statement.execute("insert into agents (name, role) values ('master-agent', 'admin')")
                         }
                     }
                 }

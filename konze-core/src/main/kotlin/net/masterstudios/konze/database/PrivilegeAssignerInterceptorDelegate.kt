@@ -30,7 +30,7 @@ public class PrivilegeAssignerInterceptorDelegate(
             return
         }
         databaseContexts.forEach { (key, context) ->
-            context.poolManager.getPoolFromConnection(connection)?.let { pool ->
+            context.poolManager.getAllPools().forEach { string, pool ->
                 val username = pool.hikariPoolConfig.username ?: return@forEach
                 val schema = pool.poolConfiguration.schema ?: "public"
                 runBlocking {

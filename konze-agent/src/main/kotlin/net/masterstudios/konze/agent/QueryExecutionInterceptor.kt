@@ -1,6 +1,8 @@
 package net.masterstudios.konze.agent
 
 import net.bytebuddy.asm.Advice
+import net.masterstudios.konze.agent.logging.Logger
+import java.lang.reflect.Method
 import java.sql.Statement
 import java.sql.PreparedStatement
 
@@ -32,7 +34,6 @@ object QueryExecutionInterceptor {
         } else {
             null
         }
-
         return sql
     }
 
@@ -41,27 +42,25 @@ object QueryExecutionInterceptor {
     fun enter(
         @Advice.This target: Any,
         @Advice.AllArguments args: Array<Any?>,
-        @Advice.Origin("#m") methodName: String
+        @Advice.Origin method: Method
     ): Long {
         try {
             if (target is Statement) {
                 val sql = extractSql(target, args) ?: return 0L
-                if (sql.contains(NO_MONITORING_MARKER)) {
+                if (sql.contains(NO_MONITORING_MARKER) || sql.trim().isEmpty()) {
                     return -1
                 }
-                println("[AGENT] Entering method: $methodName")
                 val connection = target.connection
-                val threadId = Thread.currentThread().threadId()
+                Logger.info("${method.name} sql: $sql")
                 synchronized(delegates) {
                     delegates.forEach { it.onStatementExecuteInvoke(sql, connection) }
                 }
-                println("[AGENT] [Thread-$threadId] executing sql: $sql")
                 return System.currentTimeMillis()
             }
         } catch (e: Exception) {
-            println("[AGENT] error logging sql (enter): ${e.message}")
+            Logger.error("error logging sql (enter): ${e.message}")
         }
-        return 0L
+        return -1L
     }
 
     @Advice.OnMethodExit(onThrowable = Throwable::class, inline = false)
@@ -70,25 +69,23 @@ object QueryExecutionInterceptor {
         @Advice.This target: Any,
         @Advice.AllArguments args: Array<Any?>,
         @Advice.Enter startTime: Long,
-        @Advice.Origin("#m") methodName: String
+        @Advice.Origin method: Method
     ) {
+        if (startTime == -1L) {
+            return
+        }
         try {
             if (target is Statement && startTime != 0L) {
                 val sql = extractSql(target, args) ?: return
-                if (sql.contains(NO_MONITORING_MARKER)) {
-                    return
-                }
-                println("[AGENT] Exiting method: $methodName")
                 val durationMs = System.currentTimeMillis() - startTime
                 val connection = target.connection
-                val threadId = Thread.currentThread().threadId()
+                Logger.info("${method.name} finished sql: $sql (took ${durationMs}ms)")
                 synchronized(delegates) {
                     delegates.forEach { it.onStatementExecuteFinished(sql, connection, durationMs) }
                 }
-                println("[AGENT] [Thread-$threadId] finished sql: $sql (took ${durationMs}ms)")
             }
         } catch (e: Exception) {
-            println("[AGENT] error logging sql (exit): ${e.message}")
+            Logger.error("error logging sql (exit): ${e.message}")
         }
     }
 }

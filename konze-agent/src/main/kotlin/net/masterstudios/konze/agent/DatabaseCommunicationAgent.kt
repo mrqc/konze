@@ -4,6 +4,7 @@ import java.lang.instrument.Instrumentation
 import net.bytebuddy.agent.builder.AgentBuilder
 import net.bytebuddy.asm.Advice
 import net.bytebuddy.matcher.ElementMatchers
+import net.masterstudios.konze.agent.logging.Logger
 
 public class DatabaseCommunicationAgent private constructor() {
 
@@ -21,7 +22,7 @@ public class DatabaseCommunicationAgent private constructor() {
 
         @JvmStatic
         fun premain(agentArgs: String?, inst: Instrumentation) {
-            println("[AGENT] SQL Logging Agent successfully initialized!")
+            Logger.info("[AGENT] SQL Logging Agent successfully initialized!")
 
             AgentBuilder.Default()
                 // Target any class implementing JDBC's Statement or PreparedStatement

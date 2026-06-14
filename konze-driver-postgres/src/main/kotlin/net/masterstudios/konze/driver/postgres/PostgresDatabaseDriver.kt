@@ -98,6 +98,8 @@ public class PostgresDatabaseDriver(
         connection.createStatement().use { statement ->
             // CLEAN SLATE
             val dbName = connection.catalog
+            
+            println("GRAAANTING")
 
             if (permissions.isEmpty()) return
             // 1. Grant usage on schema and set search path

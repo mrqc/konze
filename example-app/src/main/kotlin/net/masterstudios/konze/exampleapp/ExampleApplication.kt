@@ -31,15 +31,31 @@ public class ExampleApplication {
                             // Administrative cleanup
                             println("Cleaning up existing table 'agents' with full-access-profile...")
                             statement.execute("drop table if exists agents")
-
+                            
                             println("Creating example table 'agents' with full-access-profile...")
                             statement.execute("""
-                                create table agents (
+                                create table if not exists agents (
                                     id serial primary key,
                                     name varchar(255) not null,
                                     role varchar(255)
                                 )
                             """.trimIndent())
+
+                            // Query role_table_grants and print full results
+                            println("Listing role_table_grants for public.agents:")
+                            statement.executeQuery("""
+                                SELECT grantee, privilege_type, is_grantable
+                                FROM information_schema.role_table_grants
+                                WHERE table_name = 'agents'
+                                  AND table_schema = 'public'
+                            """.trimIndent()).use { rs ->
+                                while (rs.next()) {
+                                    val grantee = rs.getString("grantee")
+                                    val privilege = rs.getString("privilege_type")
+                                    val isGrantable = rs.getString("is_grantable")
+                                    println("grantee=$grantee, privilege_type=$privilege, is_grantable=$isGrantable")
+                                }
+                            }
                             
                             println("Inserting sample data with full-access-profile...")
                             statement.execute("insert into agents (name, role) values ('master-agent', 'admin')")

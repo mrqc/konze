@@ -2,8 +2,6 @@ package net.masterstudios.konze.database
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import net.masterstudios.konze.DatabaseContext
 import net.masterstudios.konze.agent.QueryExecutionInterceptorDelegate
 import java.sql.Connection

@@ -7,6 +7,12 @@ import java.sql.SQLException
 public class ExampleApplication {
     public companion object {
         @JvmStatic
+        private fun fail(msg: String) {
+            println("ERROR: $msg")
+            System.exit(1)
+        }
+        
+        @JvmStatic
         public fun main(args: Array<String>) {
             // Locate the example-spec.yaml. 
             val configPath = "src/main/resources/example-spec.yaml"
@@ -31,7 +37,6 @@ public class ExampleApplication {
                             // Administrative cleanup
                             println("Cleaning up existing table 'agents' with full-access-profile...")
                             statement.execute("drop table if exists agents")
-                            Thread.sleep(2000)
                             
                             println("Creating example table 'agents' with full-access-profile...")
                             statement.execute("""
@@ -41,7 +46,6 @@ public class ExampleApplication {
                                     role varchar(255)
                                 )
                             """.trimIndent())
-                            Thread.sleep(2000)
 
                             // Query role_table_grants and print full results
                             println("Listing role_table_grants for public.agents:")
@@ -55,14 +59,34 @@ public class ExampleApplication {
                                     val grantee = rs.getString("grantee")
                                     val privilege = rs.getString("privilege_type")
                                     val isGrantable = rs.getString("is_grantable")
-                                    println("grantee=$grantee, privilege_type=$privilege, is_grantable=$isGrantable")
+                                    println("table grantee=$grantee, privilege_type=$privilege, is_grantable=$isGrantable")
+                                }
+                            }
+
+                            statement.executeQuery("""
+                                SELECT
+                                    rolname AS role_name,
+                                    type AS privilege_type
+                                FROM
+                                    pg_roles,
+                                    (VALUES ('USAGE'), ('SELECT'), ('UPDATE')) AS p(type)
+                                WHERE
+                                    has_sequence_privilege(rolname, 'agents_id_seq', type);
+
+                            """.trimIndent()).use { rs ->
+                                while (rs.next()) {
+                                    val roleName = rs.getString("role_name")
+                                    val privilege = rs.getString("privilege_type")
+                                    println("sequence grantee=$roleName, privilege_type=$privilege")
                                 }
                             }
                             
                             println("Inserting sample data with full-access-profile...")
-                            //statement.execute("insert into agents (name, role) values ('master-agent', 'admin')")
+                            statement.execute("insert into agents (name, role) values ('master-agent', 'admin')")
                         }
                     }
+                } else {
+                    fail("Error: Could not find connection pool for profile '$fullAccessProfile'")
                 }
 
                 // 2. Try to insert with read-only profile
@@ -77,12 +101,12 @@ public class ExampleApplication {
                                 statement.execute("insert into agents (name, role) values ('unauthorized', 'hacker')")
                             }
                         }
-                        println("ERROR: Insert unexpectedly succeeded with read-only-profile!")
+                        fail("Insert unexpectedly succeeded with read-only-profile!")
                     } catch (e: SQLException) {
                         println("SUCCESS: Insert failed as expected. Error: ${e.message}")
                     }
                 } else {
-                    println("Error: Could not find connection pool for profile '$readOnlyProfile'")
+                    fail("Error: Could not find connection pool for profile '$readOnlyProfile'")
                 }
 
                 // 3. Verify read access works
@@ -98,7 +122,7 @@ public class ExampleApplication {
                             }
                         }
                     } catch (e: SQLException) {
-                        println("Error: Read access failed. ${e.message}")
+                        fail("Error: Read access failed. ${e.message}")
                     }
                 }
             }

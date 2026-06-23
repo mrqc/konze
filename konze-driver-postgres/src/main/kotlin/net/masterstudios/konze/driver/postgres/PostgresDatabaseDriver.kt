@@ -90,6 +90,7 @@ public class PostgresDatabaseDriver(
     }
     
     private fun executeStatement(statement: Statement, sql: String) {
+        println("Executing SQL: $sql")
         statement.execute(NO_MONITORING_MARKER + sql)
     }
 
@@ -99,8 +100,6 @@ public class PostgresDatabaseDriver(
             // CLEAN SLATE
             val dbName = connection.catalog
             
-            println("GRAAANTING")
-
             if (permissions.isEmpty()) return
             // 1. Grant usage on schema and set search path
             executeStatement(statement, "grant usage on schema \"$schema\" to \"$username\"")

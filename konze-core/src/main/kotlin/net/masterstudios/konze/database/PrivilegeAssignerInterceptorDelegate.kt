@@ -29,19 +29,15 @@ public class PrivilegeAssignerInterceptorDelegate(
         if ( !(sql.lowercase().contains("create") || sql.lowercase().contains("alter"))) {
             return
         }
-        databaseContexts.forEach { (key, context) ->
-            context.poolManager.getAllPools().forEach { string, pool ->
+        databaseContexts.forEach { (contextName, context) ->
+            context.poolManager.getAllPools().forEach { profileName, pool ->
                 val username = pool.hikariPoolConfig.username ?: return@forEach
                 val schema = pool.poolConfiguration.schema ?: "public"
-                runBlocking {
-                    backgroundScope.launch {
-                        context.databaseAdministrationManager.driver.grantPermissionsOnUser(
-                            username,
-                            schema,
-                            pool.profileConfiguration.permissions
-                        )
-                    }
-                }
+                context.databaseAdministrationManager.driver.grantPermissionsOnUser(
+                    username,
+                    schema,
+                    pool.profileConfiguration.permissions
+                )
             }
         }
     }

@@ -90,7 +90,6 @@ public class PostgresDatabaseDriver(
     }
     
     private fun executeStatement(statement: Statement, sql: String) {
-        println("Executing SQL: $sql")
         statement.execute(NO_MONITORING_MARKER + sql)
     }
 

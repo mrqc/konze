@@ -105,12 +105,7 @@ public class ExampleApplication {
                     } catch (e: SQLException) {
                         println("SUCCESS: Insert failed as expected. Error: ${e.message}")
                     }
-                } else {
-                    fail("Error: Could not find connection pool for profile '$readOnlyProfile'")
-                }
 
-                // 3. Verify read access works
-                if (readOnlyDs != null) {
                     println("Verifying read access with read-only-profile...")
                     try {
                         readOnlyDs.connection.use { connection ->
@@ -124,10 +119,45 @@ public class ExampleApplication {
                     } catch (e: SQLException) {
                         fail("Error: Read access failed. ${e.message}")
                     }
+                } else {
+                    fail("Error: Could not find connection pool for profile '$readOnlyProfile'")
+                }
+
+                // 2. Try to insert with read-only profile
+                val writeOnlyProfile = "write-only-profile"
+                val writeOnlyDs = engine.getDatabaseContext("sample-context")!!.poolManager.getPool(writeOnlyProfile)?.hikariDataSource
+
+                if (writeOnlyDs != null) {
+                    println("Attempting to insert into 'agents' with write-only-profile (expecting failure)...")
+                    try {
+                        writeOnlyDs.connection.use { connection ->
+                            connection.createStatement().use { statement ->
+                                statement.execute("insert into agents (name, role) values ('unauthorized', 'hacker')")
+                            }
+                        }
+                        println("SUCCESS: Insert succeeded as expected.")
+                    } catch (e: SQLException) {
+                        fail("Error: Write access failed. ${e.message}")
+                    }
+
+                    println("Verifying read access with write-only-profile...")
+                    try {
+                        writeOnlyDs.connection.use { connection ->
+                            connection.createStatement().use { statement ->
+                                val resultSet = statement.executeQuery("select count(*) from agents")
+                                if (resultSet.next()) {
+                                    fail("Error: Read count: ${resultSet.getInt(1)}")
+                                }
+                            }
+                        }
+                    } catch (e: SQLException) {
+                        println("SUCCESS: Read access failed. ${e.message}")
+                    }
+                } else {
+                    fail("Error: Could not find connection pool for profile '$readOnlyProfile'")
                 }
             }
-            
-            println("Example Application finished.")
+            println("Example Application finished correctly.")
         }
     }
 }

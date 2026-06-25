@@ -10,3 +10,4 @@ include(":example-app")
 
 include("example-spring-boot-app")
 include("konze-agent")
+include("konze-cli")
